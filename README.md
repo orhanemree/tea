@@ -1,0 +1,51 @@
+# ♨️ Tea
+Simple HTTP server library for web applications written in Python.
+
+Tea, uses [Express.js](https://github.com/expressjs/express)-like syntax (which is web framework for JavaScript) instead of [Flask](https://github.com/pallets/flask)-like syntax.
+
+<p align="center"><img src="./img/banner.png" width="250"></p>
+
+## Quick Start
+* Coming soon.
+
+## `Hello, World!`
+Simple `Hello, World!` example in Tea and equivalents in Flask and Express.js. See `/examples` for more example (coming soon).
+
+### Tea
+```python
+# app.py
+from tea import Tea
+app = Tea()
+def handle_index(req, res):
+    res.send("Hello, World!")
+app.get("/", handle_index)
+app.listen(port=8080)
+```
+
+### Flask
+```python
+# app.py
+from flask import Flask
+app = Flask(__name__)
+@app.route("/", methods=["GET"])
+def handle_index():
+    return "Hello, World!"
+app.run(port=8080)
+```
+
+### Express.js
+```javascript
+// app.js
+import express from "express";
+const app = express();
+app.get("/", (req, res) => {
+    res.send("Hello, World!");
+});
+app.listen(8080);
+```
+
+## Documentation
+* See [DOCUMENTATION.md](./DOCUMENTATION.md).
+
+## License
+* Licensed under the [MIT License](./LICENSE).
