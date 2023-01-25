@@ -1,7 +1,7 @@
 # ♨️ Tea
-Simple HTTP server library for web applications written in Python.
+Simple HTTP library for web applications written in Python.
 
-Tea, uses [Express.js](https://github.com/expressjs/express)-like syntax (which is web framework for JavaScript) instead of [Flask](https://github.com/pallets/flask)-like syntax.
+Tea is more similar to [Express.js](https://github.com/expressjs/express)-like syntax (which is web framework for JavaScript) than [Flask](https://github.com/pallets/flask)-like syntax. Fun fact: Developer thinks it is better.
 
 <p align="center"><img src="./img/banner.png" width="250"></p>
 
