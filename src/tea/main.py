@@ -1,18 +1,20 @@
 import socket
+import json
+from datetime import datetime
 from .helpers import *
 from .status import status as sts
-import json
 
 """
 TODOS:
 - Send request params to app.
+- Add dynamic content-length and date heaaders to response.
 """
 
 # defaults
 HOST = "127.0.0.1"
 PORT = 5500
 HTTP_VERSION = "HTTP/1.1"
-MODE = "DEVELOPMENT"
+MODE = "development"
 
 class Request:
     def __init__(self, parsed_req):
@@ -30,7 +32,7 @@ class Response:
     def __init__(self):
         self.__status = 200
         self.__status_message = sts[str(self.__status)]
-        self.__headers = { "content-type": "text/html" }
+        self.__headers = { "content-type": "text/html; charset=utf-8", "connection": "close", "server": "Python/Tea" }
         self.__body = ""
     
     
@@ -41,12 +43,12 @@ class Response:
         return f"{HTTP_VERSION} {self.__status} {self.__status_message}{headers_as_string}\r\n\r\n{self.__body}"
     
     
-    def add_header(self, header, value=False):
+    def set_header(self, header, value=False):
         if value: # if takes one header
-            self.__headers[header] = str(value)
+            self.__headers[header.lower()] = str(value)
         else: # if takes multiple headers as dict
             for key in header:
-                self.__headers[key] = header[key]
+                self.__headers[key.lower()] = header[key]
                 
     
     def send(self, body, status=200):
@@ -82,8 +84,8 @@ class Tea:
     def __handle_req(self, req, conn):
         parsed_req = parse_raw_http_req(req)
         
-        if self.__mode == "DEVELOPMENT":
-            print(f"> {parsed_req['method']} http://{self.__host}:{self.__port}{parsed_req['url']}")
+        if self.__mode == "development":
+            print(f"[{datetime.now().strftime('%H.%M.%S')}] > {parsed_req['method']} http://{self.__host}:{self.__port}{parsed_req['url']}")
         
         # default error message
         res_text = f"{HTTP_VERSION} 404 NOT FOUND\r\n\r\n404 NOT FOUND\r\n"
@@ -115,11 +117,11 @@ class Tea:
     def listen(self, **kwargs):
         self.__host = kwargs.get("host") or self.__host
         self.__port = kwargs.get("port") or self.__port
-        self.__mode = kwargs.get("mode") or self.__mode
+        self.__mode = kwargs.get("mode").lower() if kwargs.get("mode") else self.__mode
         
         self.__s.bind((self.__host, self.__port))
         self.__s.listen()
-        if self.__mode == "DEVELOPMENT":
+        if self.__mode == "development":
             print(f"Server is running on http://{self.__host}:{self.__port}\nPress ^C to kill server.")
             
         while 1:
@@ -130,5 +132,5 @@ class Tea:
                 conn.close()
             except KeyboardInterrupt:
                 self.__s.close()
-                print(f"\n{'Server killed.' if self.__mode == 'DEVELOPMENT' else ''}")
+                print(f"\n{'Server killed.' if self.__mode == 'development' else ''}")
                 exit(0)

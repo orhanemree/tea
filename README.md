@@ -3,13 +3,15 @@ Simple HTTP library for web applications written in Python.
 
 Tea is more similar to [Express.js](https://github.com/expressjs/express)-like syntax (which is web framework for JavaScript) than [Flask](https://github.com/pallets/flask)-like syntax. Fun fact: Developer thinks it is better.
 
-<p align="center"><img src="./img/banner.png" width="250"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/orhanemree/tea/master/img/banner.png?token=GHSAT0AAAAAABVRNKZVDE6BFSHEMH33GAFIY6STOGQ" width="250"></p>
 
 ## Quick Start
-* Coming soon.
+```console
+$ pip install tea-web
+```
 
 ## `Hello, World!`
-Simple `Hello, World!` example in Tea and equivalents in Flask and Express.js. See `/examples` for more example (coming soon).
+Simple `Hello, World!` example in Tea and equivalents in Flask and Express.js. See [`/examples`](https://github.com/orhanemree/tea/tree/master/examples) for more example.
 
 ### Tea
 ```python
@@ -45,7 +47,7 @@ app.listen(8080);
 ```
 
 ## Documentation
-* See [DOCUMENTATION.md](./DOCUMENTATION.md).
+* See [DOCUMENTATION.md](https://github.com/orhanemree/tea/blob/master/DOCUMENTATION.md).
 
 ## License
-* Licensed under the [MIT License](./LICENSE).
+* Licensed under the [MIT License](https://github.com/orhanemree/tea/blob/master/LICENSE).
