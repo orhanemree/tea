@@ -9,7 +9,7 @@ def readme():
 
 setup(
     name="tea-web",
-    version="0.0.2",
+    version="0.0.3",
     description="Simple HTTP library for web applications written in Python.",
     long_description=readme(),
     long_description_content_type="text/markdown",
@@ -18,4 +18,4 @@ setup(
     license="MIT",
     packages=["tea"],
     package_dir={"":"src"}
-)
+) 

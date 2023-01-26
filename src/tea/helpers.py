@@ -1,7 +1,7 @@
 import json
 
 def parse_raw_http_req(http_req):
-    parsed_req = { "body": "" }
+    parsed_req = { "body": "", "params": {}, "path": { "full_path": "", "routes": ["/"], "route_count": 0 } }
     headers = http_req
     if "\r\n\r\n" in http_req: # it means req contains body
         headers, body = http_req.split("\r\n\r\n" if "\r" in http_req else "\n\n")
@@ -9,11 +9,19 @@ def parse_raw_http_req(http_req):
             parsed_req["body"] = json.loads(body)
         
     lines = headers.split("\r\n" if "\r" in headers else "\n")
-    required_first_line = lines.pop(0).split(" ") # eg. GET / HTTP/1.1
+    required_first_line = lines.pop(0).strip().split(" ") # eg. GET / HTTP/1.1
         
-    parsed_req["method"] = required_first_line[0] if len(required_first_line) > 0 else ""
-    parsed_req["url"] = required_first_line[1] if len(required_first_line) > 1 else ""
-    parsed_req["http_version"] = required_first_line[2] if len(required_first_line) > 2 else ""
+    parsed_req["method"] = required_first_line[0] if len(required_first_line) > 0 else "GET"
+    if len(required_first_line) > 1:
+        full_path = required_first_line[1]
+        routes = list(filter(lambda r: r != "", [route for route in full_path.split("/")]))
+        routes.insert(0, "/")
+        parsed_req["path"] = {
+            "full_path": full_path,
+            "routes": routes,
+            "route_count": len(list(filter(lambda r: r != "", [route for route in full_path.split("/")])))+1
+        }
+    parsed_req["http_version"] = required_first_line[2] if len(required_first_line) > 2 else "HTTP/1.1"
     
     for line in lines:
         if ":" in line: # eg. host: localhost:5500
@@ -44,13 +52,13 @@ def parse_path(path):
             else:
                 parsed_path["prompted_query_params"].append(query_param)
                 
-    for param in params.split("/"):
+    for (i, param) in enumerate(params.split("/")):
         if param:
             parsed_path["route_count"] += 1
             if param[0] == ":":
-                parsed_path["prompted_params"].append(param[1:])
+                parsed_path["prompted_params"].append((param[1:], i))
             
     return parsed_path
 
 def get_headers_as_string(headers):
-    return "\r\n".join([f"{key}: {headers[key]}" for key in list(headers.keys())])
+    return "\r\n".join([f"{key.replace('-', ' ').title().replace(' ', '-')}: {headers[key]}" for key in list(headers.keys())])
