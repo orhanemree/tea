@@ -1,5 +1,6 @@
 import socket
 import json
+from pathlib import Path
 from datetime import datetime
 from .helpers import *
 from .status import status as sts
@@ -8,6 +9,7 @@ from .status import status as sts
 TODOS:
 - Make query params accessible from app.
 - Default 404 error message does not work. Fix it.
+- Add error report.
 """
 
 # defaults
@@ -60,6 +62,14 @@ class Response:
         self.__status_message = sts[str(self.__status)]
         self.__body = body
         
+    
+    def send_file(self, filename, status=200):
+        self.__status = status
+        self.__status_message = sts[str(self.__status)]
+        absolute_path = Path(filename).resolve()
+        with open(absolute_path, "r", encoding="utf-8") as f:
+            self.__body = f.read()
+        # need error handle here
 
 class Tea:
     def __init__(self):
