@@ -77,7 +77,7 @@ def handle_new_post(req, res):
     title = req.body["title"]
     content = req.body["content"]
     # some stuff with title and content
-    req.send("Created.", status=201)
+    res.send("Created.", status=201)
 
 app.post("/new-post", handle_new_post)
 ```
