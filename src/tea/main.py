@@ -6,7 +6,6 @@ from .status import status as sts
 
 """
 TODOS:
-- Add dynamic content-length and date headers to response.
 - Make query params accessible from app.
 - Default 404 error message does not work. Fix it.
 """
@@ -43,10 +42,9 @@ class Response:
     
     
     def get_full_res_text(self):
-        headers_as_string = ""
-        if self.__headers:
-            headers_as_string = "\r\n" + get_headers_as_string(self.__headers)
-        return f"{HTTP_VERSION} {self.__status} {self.__status_message}{headers_as_string}\r\n\r\n{self.__body}"
+        self.__headers["content-length"] = len(self.__body)
+        self.__headers["date"] = datetime.now()
+        return f"{HTTP_VERSION} {self.__status} {self.__status_message}\r\n{get_headers_as_string(self.__headers)}\r\n\r\n{self.__body}"
     
     
     def set_header(self, header, value=False):
