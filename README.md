@@ -1,4 +1,4 @@
-# ♨️ Tea
+# 🍵 Tea
 Simple HTTP library for web applications written in Python.
 
 Tea is more similar to [Express.js](https://github.com/expressjs/express)-like syntax (which is web framework for JavaScript) than [Flask](https://github.com/pallets/flask)-like syntax. Fun fact: Developer thinks it is better.

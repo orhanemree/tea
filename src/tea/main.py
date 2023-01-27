@@ -6,9 +6,9 @@ from .status import status as sts
 
 """
 TODOS:
-- Send request params to app.
 - Add dynamic content-length and date headers to response.
 - Make query params accessible from app.
+- Default 404 error message does not work. Fix it.
 """
 
 # defaults
@@ -81,9 +81,20 @@ class Tea:
         parsed_path = parse_path(path)
         self.__rules.append({ "method": "GET", "path": parsed_path, "callback": callback })
         
+        
     def post(self, path, callback):
         parsed_path = parse_path(path)
         self.__rules.append({ "method": "POST", "path": parsed_path, "callback": callback })
+        
+        
+    def put(self, path, callback):
+        parsed_path = parse_path(path)
+        self.__rules.append({ "method": "PUT", "path": parsed_path, "callback": callback })
+        
+        
+    def delete(self, path, callback):
+        parsed_path = parse_path(path)
+        self.__rules.append({ "method": "DELETE", "path": parsed_path, "callback": callback })
         
         
     def __handle_req(self, req, conn):
