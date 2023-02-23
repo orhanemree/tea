@@ -8,7 +8,7 @@ class Request:
         self.__parsed_req = self.parse_req(req)
         self.method       = self.__parsed_req["method"]
         self.url          = URL(self.__parsed_req["url"])
-        self.params       = ["/"] + list(map(lambda p: p, self.url.pathname[1:].split("/")))
+        self.params       = ["/"] + list(filter(lambda p: p != "", self.url.pathname[1:].split("/")))
         self.http_version = self.__parsed_req["http_version"]
         self.headers      = self.__parsed_req["headers"]
         self.body         = self.__parsed_req["body"]
