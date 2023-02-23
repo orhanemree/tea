@@ -1,83 +1,15 @@
+
+from .request import Request
+from .response import Response
+
 import socket
 import json
 from pathlib import Path
 from datetime import datetime
-from .helpers import *
-from .status import status as sts
-
-"""
-TODOS:
-- Make query params accessible from app.
-- Default 404 error message does not work. Fix it.
-- Add error report.
-"""
-
-# defaults
-HOST = "127.0.0.1"
-PORT = 5500
-HTTP_VERSION = "HTTP/1.1"
-MODE = "development"
-
-class Request:
-    def __init__(self, parsed_req):
-        self.__parsed_req = parsed_req
-        self.method = parsed_req["method"]
-        self.path = parsed_req["path"]
-        self.body = parsed_req["body"]
-        self.params = parsed_req["params"]
-        
-        
-    def get_data(self, data):
-        return self.__parsed_req[data.lower()]
-    
-
-class Response:
-    def __init__(self):
-        self.__status = 200
-        self.__status_message = sts[str(self.__status)]
-        self.__headers = {
-            "content-type": "text/html; charset=utf-8",
-            "connection": "close",
-            "server": "Python/Tea"
-        }
-        self.__body = ""
-    
-    
-    def get_full_res_text(self):
-        self.__headers["content-length"] = len(self.__body)
-        self.__headers["date"] = datetime.now()
-        return f"{HTTP_VERSION} {self.__status} {self.__status_message}\r\n{get_headers_as_string(self.__headers)}\r\n\r\n{self.__body}"
-    
-    
-    def set_header(self, header, value=False):
-        if value: # if takes one header
-            self.__headers[header.lower()] = str(value)
-        else: # if takes multiple headers as dict
-            for key in header:
-                self.__headers[key.lower()] = header[key]
-                
-    
-    def send(self, body, status=200):
-        self.__status = status
-        self.__status_message = sts[str(self.__status)]
-        self.__body = body
-        
-    
-    def send_file(self, filename, status=200):
-        self.__status = status
-        self.__status_message = sts[str(self.__status)]
-        absolute_path = Path(filename).resolve()
-        with open(absolute_path, "r", encoding="utf-8") as f:
-            self.__body = f.read()
-        # need error handle here
 
 class Tea:
+
     def __init__(self):
-        self.__host = HOST
-        self.__port = PORT
-        self.__http_version = HTTP_VERSION
-        self.__mode = MODE
-        
         # socket server setup
         self.__s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -86,74 +18,58 @@ class Tea:
         
     
     def get(self, path, callback):
-        parsed_path = parse_path(path)
-        self.__rules.append({ "method": "GET", "path": parsed_path, "callback": callback })
+        self.__rules.append({ "method": "GET", "path": path, "callback": callback })
         
         
     def post(self, path, callback):
-        parsed_path = parse_path(path)
-        self.__rules.append({ "method": "POST", "path": parsed_path, "callback": callback })
+        self.__rules.append({ "method": "POST", "path": path, "callback": callback })
         
         
     def put(self, path, callback):
-        parsed_path = parse_path(path)
-        self.__rules.append({ "method": "PUT", "path": parsed_path, "callback": callback })
+        self.__rules.append({ "method": "PUT", "path": path, "callback": callback })
         
         
     def delete(self, path, callback):
-        parsed_path = parse_path(path)
-        self.__rules.append({ "method": "DELETE", "path": parsed_path, "callback": callback })
+        self.__rules.append({ "method": "DELETE", "path": path, "callback": callback })
         
         
     def __handle_req(self, req, conn):
-        parsed_req = parse_raw_http_req(req)
+        req = Request(req)
+        # default error message
+        res = Response(body="404 Not Found", status_code=404)
         
         if self.__mode == "development":
-            print(f"[{datetime.now().strftime('%H.%M.%S')}] > {parsed_req['method']} http://{self.__host}:{self.__port}{parsed_req['path']['full_path']}")
+            print(f"[{datetime.now().strftime('%X - %x')}] > {req.method} http://{self.__host}:{self.__port}{req.url.href}")
         
-        # default error message
-        res_text = f"{HTTP_VERSION} 404 NOT FOUND\r\n\r\n404 NOT FOUND\r\n"
+        # rules which have same path with request
+        same_path = list(filter(lambda r: r["path"] == req.url.pathname, self.__rules))
         
-        # I know the code below is hard to read and understand but just wait for the comment lines. I will add soon.
-        same_route_count = list(filter(lambda r: r["path"]["route_count"] == parsed_req["path"]["route_count"], self.__rules))
-        if same_route_count:
-            res_text = f"{HTTP_VERSION} 405 METHOD NOT ALLOWED\r\n\r\n405 METHOD NOT ALLOWED\r\n"
-            same_method = list(filter(lambda r: r["method"] == parsed_req["method"], same_route_count))
-            if same_method:
-                same_default_path = list(filter(lambda r: r["path"]["full_path"] == parsed_req["path"]["full_path"], same_method))
-                current_rule = {}
-                if not same_default_path:
-                    if len(same_method) > 1:
-                        current_rule = list(filter(lambda r: r["path"]["full_path"] != parsed_req["path"]["full_path"], same_method))[0]
-                    else:
-                        current_rule = same_method[0]
-                    for prompted_param in current_rule["path"]["prompted_params"]: # (param_name, param_index_in_path)
-                        parsed_req["params"][prompted_param[0]] = parsed_req["path"]["routes"][prompted_param[1]]
-                else:
-                    current_rule = same_default_path[0]
-                
-                req = Request(parsed_req)
-                res = Response()
-                
-                # run callback function to send request to app and get response
-                current_rule["callback"](req, res)
-                
-                # get response text from app
-                res_text = res.get_full_res_text().replace("'", '"')
-        # send response text
-        conn.sendall(res_text.encode())
+        if same_path:
+            res.body = "405 Method Not Allowed"
+            res.status_code = 405
+            
+            # rules which have same path and method with request
+            same_method = list(filter(lambda r: r["method"] == req.method, same_path))
+            
+            if len(same_method) > 0:
+                # if app has more than one callback (rule) with the same path and the method
+                # run the last one
+                same_method[-1]["callback"](req, res)
+               
+        conn.sendall(res.get_res_as_text().encode())
      
      
-    def listen(self, **kwargs):
-        self.__host = kwargs.get("host") or self.__host
-        self.__port = kwargs.get("port") or self.__port
-        self.__mode = kwargs.get("mode").lower() if kwargs.get("mode") else self.__mode
+    def listen(self, host="127.0.0.1", port=5500, mode="development"):
+        self.__host = host
+        self.__port = port
+        self.__mode = mode.lower()
         
         self.__s.bind((self.__host, self.__port))
         self.__s.listen()
+        
         if self.__mode == "development":
-            print(f"Server is running on http://{self.__host}:{self.__port}\nPress ^C to kill server.")
-            
+            print(f"Server is running on http://{self.__host}:{self.__port}.\nPress ^C to close server.")
+
         while 1:
             try:
                 conn, addr = self.__s.accept()
@@ -162,5 +78,5 @@ class Tea:
                 conn.close()
             except KeyboardInterrupt:
                 self.__s.close()
-                print(f"\n{'Server killed.' if self.__mode == 'development' else ''}")
+                print(f"\n{'Server closed.' if self.__mode == 'development' else ''}")
                 exit(0)

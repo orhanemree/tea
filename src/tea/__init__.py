@@ -1,7 +1,6 @@
-from .main import Request as Request
-from .main import Response as Response
 from .main import Tea as Tea
-from .helpers import *
-from .status import status as sts
+from .url import URL as URL
+from .request import Request as Request
+from .response import Response as Response
 
 __version__ = "0.0.4"

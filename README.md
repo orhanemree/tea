@@ -1,9 +1,9 @@
 # 🍵 Tea
-Simple HTTP library for web applications written in Python.
+Micro HTTP library for Python.
 
 Tea is more similar to [Express.js](https://github.com/expressjs/express)-like syntax (which is web framework for JavaScript) than [Flask](https://github.com/pallets/flask)-like syntax. Fun fact: Developer thinks it is better.
 
-<p align="center"><img src="https://raw.githubusercontent.com/orhanemree/tea/master/img/banner.png?token=GHSAT0AAAAAABVRNKZVDE6BFSHEMH33GAFIY6STOGQ" width="250"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/orhanemree/tea/master/img/banner.png" width="250"></p>
 
 ## Quick Start
 ```console
