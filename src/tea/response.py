@@ -1,5 +1,6 @@
 from datetime import datetime
 from pathlib import Path
+from mimetypes import types_map
 
 status_list = {
     "202": "ACCEPTED",
@@ -106,14 +107,16 @@ class Response:
         self.body = body
         
     
-    def send_file(self, filename, headers=None, status_code=200, content_type="text/plain"):
+    def send_file(self, filename, headers=None, status_code=200):
         self.status_code = status_code
         self.status_message = status_list[str(self.status_code)]
-        self.set_headers("Content-Type", f"{content_type}; charset=utf-8")
+        self.set_headers("Content-Type", f"{types_map['.' + filename.split('.')[-1]]}; charset=utf-8")
         if headers:
             self.set_headers(headers)
         
         absolute_path = Path(filename).resolve()
-        with open(absolute_path, "r", encoding="utf-8") as f:
-            self.body = f.read()
-        # TODO: add error handle
+        try:
+            with open(absolute_path, "r", encoding="utf-8") as f:
+                self.body = f.read()
+        except Exception as e:
+            raise

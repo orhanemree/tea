@@ -1,5 +1,7 @@
 from .url import URL
 
+from json import loads
+
 class Request:
     
     def __init__(self, req):
@@ -14,9 +16,16 @@ class Request:
     def parse_req(self, req):
         parsed_req = {}
         
-        # parse body
-        # TODO: add advanced body parse
-        headers, parsed_req["body"] = req.split("\r\n\r\n")
+        splitted_req = req.split("\r\n\r\n")
+        headers = splitted_req.pop(0)
+        
+        # if body exists
+        if len(splitted_req) > 0:
+            try:
+                # if body is valid json
+                parsed_req["body"] = loads(splitted_req[0])
+            except Exception:
+                parsed_req["body"] = splitted_req[0]
         
         # parse headers
         lines = headers.split("\r\n")

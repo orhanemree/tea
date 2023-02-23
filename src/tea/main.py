@@ -54,7 +54,14 @@ class Tea:
             if len(same_method) > 0:
                 # if app has more than one callback (rule) with the same path and the method
                 # run the last one
-                same_method[-1]["callback"](req, res)
+                try:
+                    same_method[-1]["callback"](req, res)
+                except Exception as e:
+                    res.body = "404 Not Found"
+                    res.status_code = 404
+                    
+                    if self.__mode == "development":
+                        raise
                
         conn.sendall(res.get_res_as_text().encode())
      
