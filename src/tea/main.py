@@ -16,21 +16,37 @@ class Tea:
         
         self.__rules = []
         
+        
+    def parse_path(self, path):
+        parsed_path   = { "pathname": path, "routes": [["/", 0, ""]] }
+        splitted_path = path[1:].split("/")
+        for i in range(len(splitted_path)):
+            pathname = splitted_path[i]
+            if pathname:
+                # check if it is a prompted param
+                if pathname[0] == ":":
+                    # [pathname, is_prompted, prompted_value]
+                    parsed_path["routes"].append([pathname[1:], 1, ""])
+                else:
+                    parsed_path["routes"].append([pathname, 0, ""])
+        
+        return parsed_path
+        
     
     def get(self, path, callback):
-        self.__rules.append({ "method": "GET", "path": path, "callback": callback })
+        self.__rules.append({ "method": "GET", "path": self.parse_path(path), "callback": callback })
         
         
     def post(self, path, callback):
-        self.__rules.append({ "method": "POST", "path": path, "callback": callback })
+        self.__rules.append({ "method": "POST", "path": self.parse_path(path), "callback": callback })
         
         
     def put(self, path, callback):
-        self.__rules.append({ "method": "PUT", "path": path, "callback": callback })
+        self.__rules.append({ "method": "PUT", "path": self.parse_path(path), "callback": callback })
         
         
     def delete(self, path, callback):
-        self.__rules.append({ "method": "DELETE", "path": path, "callback": callback })
+        self.__rules.append({ "method": "DELETE", "path": self.parse_path(path), "callback": callback })
         
         
     def __handle_req(self, req, conn):
@@ -41,28 +57,42 @@ class Tea:
         if self.__mode == "development":
             print(f"[{datetime.now().strftime('%X - %x')}] > {req.method} http://{self.__host}:{self.__port}{req.url.href}")
         
-        # rules which have same path with request
-        same_path = list(filter(lambda r: r["path"] == req.url.pathname, self.__rules))
+        # rules which have same route count with request
+        same_route_count = list(filter(lambda r: len(r["path"]["routes"]) == len(req.params), self.__rules))
+        if same_route_count:
+
+            route_count = len(same_route_count[0]["path"]["routes"])
+            is_matched = False
+            matched_rule = None
+
+            for i in range(len(same_route_count)):
+                rule = same_route_count[i]
+                is_matched = True
+                matched_rule = rule
+                
+                for j in range(route_count):
+                    # if it is prompted
+                    if rule["path"]["routes"][j][1]:
+                        rule["path"]["routes"][j][2] = req.params[j]
+                    else:
+                        if rule["path"]["routes"][j][0] != req.params[j]:
+                            is_matched = False
+                            matched_rule = None
+                            break
+                            
+                if is_matched: break
+            
+            if is_matched and matched_rule:
+                res.body = "405 Method Not Allowed"
+                res.status_code = 405
+                
+                if matched_rule["method"] == req.method:
+                    req.params = {}
+                    for i in range(route_count):
+                        if matched_rule["path"]["routes"][i][1]:
+                            req.params[matched_rule["path"]["routes"][i][0]] = matched_rule["path"]["routes"][i][2]
+                    matched_rule["callback"](req, res)
         
-        if same_path:
-            res.body = "405 Method Not Allowed"
-            res.status_code = 405
-            
-            # rules which have same path and method with request
-            same_method = list(filter(lambda r: r["method"] == req.method, same_path))
-            
-            if len(same_method) > 0:
-                # if app has more than one callback (rule) with the same path and the method
-                # run the last one
-                try:
-                    same_method[-1]["callback"](req, res)
-                except Exception as e:
-                    res.body = "404 Not Found"
-                    res.status_code = 404
-                    
-                    if self.__mode == "development":
-                        raise
-               
         conn.sendall(res.get_res_as_text().encode())
      
      

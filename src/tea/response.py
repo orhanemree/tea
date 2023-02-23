@@ -86,7 +86,7 @@ class Response:
     
     def get_res_as_text(self):
         self.set_headers({ "Content-Length": len(self.body), "Date": datetime.now() })
-        return f"HTTP/1.1 {self.status_code} {self.status_message}\r\n{self.__get_headers_as_string()}\r\n\r\n{self.body}"
+        return f"HTTP/1.1 {self.status_code} {status_list[str(self.status_code)]}\r\n{self.__get_headers_as_string()}\r\n\r\n{self.body}"
     
     
     def set_headers(self, headers, value=False):
@@ -98,17 +98,17 @@ class Response:
                 
     
     def send(self, body="", headers=None, status_code=200, content_type="text/plain"):
-        self.status_code = status_code
+        self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
-        self.content_type = content_type
-        self.set_headers("Content-Type", f"{content_type}; charset=utf-8")
+        self.content_type   = content_type
+        self.set_headers("Content-Type", f"{self.content_type}; charset=utf-8")
         if headers:
             self.set_headers(headers)
         self.body = body
         
     
     def send_file(self, filename, headers=None, status_code=200):
-        self.status_code = status_code
+        self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
         self.set_headers("Content-Type", f"{types_map['.' + filename.split('.')[-1]]}; charset=utf-8")
         if headers:

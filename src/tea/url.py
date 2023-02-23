@@ -19,5 +19,4 @@ class URL:
         self.port     = url.port
         self.protocol = url.scheme
         self.username = url.username
-        # TODO: implement url path params
         # TODO: implement url search (query) params
