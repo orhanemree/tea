@@ -44,9 +44,9 @@ class Request:
         return parsed_req
     
     
-    def get_header(self, header):
-        return self.headers.get(header.replace("-", " ").title().replace(" ", "-"), None)
+    def get_header(self, key):
+        return self.headers.get(key.replace("-", " ").title().replace(" ", "-"), None)
     
     
-    def has_header(self, header):
-        return (header in self.headers)
+    def has_header(self, key):
+        return (key.replace("-", " ").title().replace(" ", "-") in self.headers)

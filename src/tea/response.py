@@ -89,10 +89,11 @@ class Response:
         return f"HTTP/1.1 {self.status_code} {status_list[str(self.status_code)]}\r\n{self.__get_headers_as_string()}\r\n\r\n{self.body}"
     
     
-    def set_headers(self, headers, value=False):
-        if value: # if takes one header
-            self.headers[headers.replace("-", " ").title().replace(" ", "-")] = value
-        else: # if takes multiple headers as dict
+    def set_header(self, key, value):
+        self.headers[headers.replace("-", " ").title().replace(" ", "-")] = value
+                
+    
+    def set_headers(self, headers):
             for key in headers:
                 self.headers[key.replace("-", " ").title().replace(" ", "-")] = headers[key]
                 
