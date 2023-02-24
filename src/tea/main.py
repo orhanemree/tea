@@ -60,15 +60,20 @@ class Tea:
         # rules which have same route count with request
         same_route_count = list(filter(lambda r: len(r["path"]["routes"]) == len(req.params), self.__rules))
         if same_route_count:
-
+            
             route_count = len(same_route_count[0]["path"]["routes"])
             is_matched = False
+            is_matched_real = False
             matched_rule = None
 
             for i in range(len(same_route_count)):
                 rule = same_route_count[i]
                 is_matched = True
-                matched_rule = rule
+                
+                if rule["path"]["pathname"] == req.url.pathname:
+                    is_matched_real = True
+                    matched_rule = rule
+                    break
                 
                 for j in range(route_count):
                     # if it is prompted
@@ -77,12 +82,13 @@ class Tea:
                     else:
                         if rule["path"]["routes"][j][0] != req.params[j]:
                             is_matched = False
-                            matched_rule = None
                             break
                             
-                if is_matched: break
+                if is_matched:
+                    is_matched_real = True
+                    matched_rule = rule
             
-            if is_matched and matched_rule:
+            if is_matched_real and matched_rule:
                 res.body = "405 Method Not Allowed"
                 res.status_code = 405
                 
