@@ -24,7 +24,7 @@ app.listen(port=8080)
 |`.post(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with POST method. Return Request and Response object to callback.|`app.post("/", index_post)`|
 |`.put(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with PUT method. Return Request and Response object to callback.|`app.put("/", index_put)`|
 |`.delete(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with DELETE method. Return Request and Response object to callback.|`app.delete("/", index_delete)`|
-|`.listen(host="127.0.0.1", port=5500, mode="develoepment")`|Start the HTTP server. Print info and error messages if development mode on.|`app.listen(port=8080)`|
+|`.listen(host="127.0.0.1", port=5500, mode="develoepment")`|Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)|`app.listen(port=8080)`|
 
 ## `Request` Class
 
@@ -44,7 +44,7 @@ app.listen(port=8080)
 
 |Property|Description|Example|
 |-|-|-|
-|`Response(body="", headers=None, status_code=200, content_type="text/plain")`|Create new Response object with given parameters.|`res = Response(body="404 Not Found", status_code=404)`|
+|`Response(body="", headers=None, status_code=200, content_type="text/plain")`|Create new Response object with given parameters. Can be used without `Tea` class for simplify res stuff.|`res = Response(body="404 Not Found", status_code=404)`|
 |`.status_code`|Response status code. (Changable with `.send()` and `.send_file()`)||
 |`.status_message`|Response status message automaticly from status code.||
 |`.content_type`|Response content type. (Changable with `.send()` and `.send_file()`||
@@ -54,7 +54,7 @@ app.listen(port=8080)
 |`.set_headers(headers: dict)`|Add multiple headers as dict to response.|`res.set_headers({ "Clear-Site-Data": "cache", ... })`|
 |`.send(body="", headers=None, status_code=200, content_type="text/plain")`|Send response inside the callback function.|`res.send(body='{"message": "User Created."}', status_code=201, content_type="application/json")`|
 |`.send_file(filename: str, headers=None, status_code=200)`|Send file as response inside the callback function with auto content type.|`res.send_file("index.html")`|
-|`.get_res_as_text()`|Get raw response text as string. Can be used without `Tea` class for simplify res stuff.|`res_text = res.get_res_as_text()`|
+|`.get_res_as_text()`|Get raw response text as string.|`res_text = res.get_res_as_text()`|
 
 
 ## `URL` Class
