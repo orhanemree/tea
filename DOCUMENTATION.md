@@ -1,19 +1,5 @@
 # Tea Documentation
-See [`/examples`](https://github.com/orhanemree/tea/tree/master/examples) for more example.
-
-## Table of Contents
-- [Tea Documentation](#tea-documentation)
-  - [Table of Contents](#table-of-contents)
-  - [Simple App](#simple-app)
-  - [Tea Object](#tea-object)
-    - [Methods](#methods)
-  - [Request Object](#request-object)
-    - [req.body](#reqbody)
-    - [req.params](#reqparams)
-  - [Response Object](#response-object)
-    - [res.set\_header()](#resset_header)
-    - [res.send()](#ressend)
-    - [res.send\_file()](#ressend_file)
+See [`/examples`](https://github.com/orhanemree/tea/tree/master/examples) for examples.
 
 ## Simple App
 ```python
@@ -22,128 +8,65 @@ from tea import Tea
 app = Tea()
 
 def handle_index(req, res):
-    res.send("<h1>Hello, World!</h1>")
+    res.send("<h1>Hello, World!</h1>", content_type="text/html")
 
 app.get("/", handle_index)
 
 app.listen(port=8080)
 ```
 
-## Tea Object
-```python
-from tea import Tea
+## `Tea` Class
 
-# create app
-app = Tea()
+|Property|Description|Example|
+|-|-|-|
+|`Tea()`|Create new app.|`app = Tea()`|
+|`.get(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with GET method. Return Request and Response object to callback.|`app.get("/", index_get)`|
+|`.post(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with POST method. Return Request and Response object to callback.|`app.post("/", index_post)`|
+|`.put(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with PUT method. Return Request and Response object to callback.|`app.put("/", index_put)`|
+|`.delete(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with DELETE method. Return Request and Response object to callback.|`app.delete("/", index_delete)`|
+|`.listen(host="127.0.0.1", port=5500, mode="develoepment")`|Start the HTTP server. Print info and error messages if development mode on.|`app.listen(port=8080)`|
 
-# start server and listen (default params below)
-app.listen(host="127.0.0.1", port=5500, mode="development")
-```
+## `Request` Class
 
-### Methods
-* Tea uses callback functions to handle requests.
-```python
-# GET request
-app.get("/", handle_get)
+|Property|Description|Example|
+|-|-|-|
+|`Request(req: str)`|Parse raw HTTP request and create new Request object. Can be used without `Tea` class for simplify req stuff.|`req = Req("GET / HTTP/1.1\r\n...")`|
+|`.method`|Request method.||
+|`.url`|Request url as URL object.|`req.url.host`|
+|`.params`|Request path params as dict.|`username = req.params["username"]`|
+|`.http_version`|Request HTTP version.||
+|`.headers`|Request headers as dict. (Case sensitive)|`req.headers["User-Agent"]`|
+|`.body`|Request body as json if valid else plain text.||
+|`.get_header(key: str)`|Get value of specific header. Return None if not exists. (Not case sensitive)|`req.get_header("user agent")`|
+|`.has_header(key: str)`|Check if header exists. (Not case sensitive)|`req.has_header("user agent")`|
 
-# POST request
-app.post("/", handle_post)
+## `Response` Class
 
-# PUT request
-app.put("/", handle_put)
+|Property|Description|Example|
+|-|-|-|
+|`Response(body="", headers=None, status_code=200, content_type="text/plain")`|Create new Response object with given parameters.|`res = Response(body="404 Not Found", status_code=404)`|
+|`.status_code`|Response status code. (Changable with `.send()` and `.send_file()`)||
+|`.status_message`|Response status message automaticly from status code.||
+|`.content_type`|Response content type. (Changable with `.send()` and `.send_file()`||
+|`.headers`|Response headers.||
+|`.body`|Response body.||
+|`.set_header(key: str, value: str)`|Add new header to response.|`res.set_header("Clear-Site-Data", "cache")`|
+|`.set_headers(headers: dict)`|Add multiple headers as dict to response.|`res.set_headers({ "Clear-Site-Data": "cache", ... })`|
+|`.send(body="", headers=None, status_code=200, content_type="text/plain")`|Send response inside the callback function.|`res.send(body='{"message": "User Created."}', status_code=201, content_type="application/json")`|
+|`.send_file(filename: str, headers=None, status_code=200)`|Send file as response inside the callback function with auto content type.|`res.send_file("index.html")`|
+|`.get_res_as_text()`|Get raw response text as string. Can be used without `Tea` class for simplify res stuff.|`res_text = res.get_res_as_text()`|
 
-# DELETE request
-app.delete("/", handle_delete)
-```
 
-## Request Object
-```python
-def handle_request(req, res):
-    # get request method
-    method = req.method
-    # get request path
-    path = req.path
-    # get request body
-    body = req.body
-    # get request params
-    params = req.params
-
-    # ...
-```
-
-### req.body
-```python
-def handle_new_post(req, res):
-    title = req.body["title"]
-    content = req.body["content"]
-    # some stuff with title and content
-    res.send("Created.", status=201)
-
-app.post("/new-post", handle_new_post)
-```
-
-### req.params
-```python
-# route with parameter
-def handle_user(req, res):
-    username = req.params["username"]
-    res.send(f"<h1>Hello, {username}/h1>")
-
-app.get("/:username", handle_user)
-
-# route with default
-def handle_admin(req, res):
-    res.send("Admin page")
-
-app.get("/admin", handle_admin)
-
-# route with another default
-def handle_author(req, res):
-    res.send("Author page")
-
-app.get("/author", handle_author)
-```
-
-## Response Object
-### res.set_header()
-* Content type is text/html by default.
-```python
-def handle_request(req, res):
-    # single header
-    res.set_header("content-type", "application/json; charset=utf-8")
-
-    # multiple headers as dict
-    res.set_header({
-        "content-type": "application/json; charset=utf-8",
-        "content-encoding": "gzip",
-        "set-cookie": "..."
-    })
-
-    # ...
-```
-### res.send()
-* HTTP status code is 200 by default.
-```python
-def handle_index(req, res):
-    res.send("Hello from main page.")
-
-app.get("/", handle_index)
-
-# custom status code
-def handle_admin(req, res):
-    admin = # check admin
-    if admin:
-        res.send("Success.")
-    else:
-        res.send("Error.", status=403)
-
-app.get("/admin", handle_admin)
-```
-
-### res.send_file()
-```python
-def handle_index(req, res):
-    res.send_file("index.html")
-
-app.get("/", handle_index)
-```
+## `URL` Class
+|Property|Description|Return Example|
+|-|-|-|
+|`URL(url: str)`|Parse url and create new URL object. `Tea` class for simplify URL stuff.|`url = URL("http://docs.python.org:80/3/library/urllib.parse.html?highlight=params#url-parsing")`|
+|`.hash`|URL hash.|`#url-parsing`|
+|`.hostname`|URL host with port.|`docs.python.org:80`|
+|`.host`|URL host without port.|`docs.python.org`|
+|`.href`|The whole URL.||
+|`.password`|URL password.||
+|`.pathname`|URl pathname.|`/3/library/urllib.parse.htm`|
+|`.port`|URL port.|`80`|
+|`.protocol`|URL protocol.|`http:`|
+|`.username`|URL username.||
