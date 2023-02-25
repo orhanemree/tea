@@ -1,7 +1,7 @@
 from .url import URL
 
 from json import loads
-
+from urllib.parse import parse_qsl
 class Request:
     
     def __init__(self, req):
@@ -9,6 +9,7 @@ class Request:
         self.method       = self.__parsed_req["method"]
         self.url          = URL(self.__parsed_req["url"])
         self.params       = ["/"] + list(filter(lambda p: p != "", self.url.pathname[1:].split("/")))
+        self.query        = { q[0]:"".join(q[1]) for q in parse_qsl(self.url.query) }
         self.http_version = self.__parsed_req["http_version"]
         self.headers      = self.__parsed_req["headers"]
         self.body         = self.__parsed_req["body"]

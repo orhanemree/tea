@@ -34,7 +34,8 @@ app.listen(port=8080)
 |`Request(req: str)`|Parse raw HTTP request and create new Request object. Can be used without `Tea` class for simplify req stuff.|`req = Req("GET / HTTP/1.1\r\n...")`|
 |`.method`|Request method.||
 |`.url`|Request url as URL object.|`req.url.host`|
-|`.params`|Request path params as dict.|`username = req.params["username"]`|
+|`.params`|Request path params as dict.|`username = req.params["username"] # path=/:username`|
+|`.query`|Request query (search) params as dict.|`username = req.query["username"] # path=/`|
 |`.http_version`|Request HTTP version.||
 |`.headers`|Request headers as dict. (Case sensitive)|`req.headers["User-Agent"]`|
 |`.body`|Request body as json if valid else plain text.||
