@@ -90,7 +90,7 @@ class Response:
     
     
     def set_header(self, key, value):
-        self.headers[headers.replace("-", " ").title().replace(" ", "-")] = value
+        self.headers[key.replace("-", " ").title().replace(" ", "-")] = value
                 
     
     def set_headers(self, headers):
@@ -102,7 +102,7 @@ class Response:
         self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
         self.content_type   = content_type
-        self.set_headers("Content-Type", f"{self.content_type}; charset=utf-8")
+        self.set_header("Content-Type", f"{self.content_type}; charset=utf-8")
         if headers:
             self.set_headers(headers)
         self.body = body
@@ -111,7 +111,7 @@ class Response:
     def send_file(self, filename, headers=None, status_code=200):
         self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
-        self.set_headers("Content-Type", f"{types_map['.' + filename.split('.')[-1]]}; charset=utf-8")
+        self.set_header("Content-Type", f"{types_map.get('.' + filename.split('.')[-1], 'text/plain')}; charset=utf-8")
         if headers:
             self.set_headers(headers)
         

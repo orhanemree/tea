@@ -20,11 +20,12 @@ app.listen(port=8080)
 |Property|Description|Example|
 |-|-|-|
 |`Tea()`|Create new app.|`app = Tea()`|
+|`.serve_static(path: str, folder_path: str)`|Serve static files in specific folder on given path.|`app.serve_static("/", "/www")`|
 |`.get(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with GET method. Return Request and Response object to callback.|`app.get("/", index_get)`|
 |`.post(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with POST method. Return Request and Response object to callback.|`app.post("/", index_post)`|
 |`.put(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with PUT method. Return Request and Response object to callback.|`app.put("/", index_put)`|
 |`.delete(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with DELETE method. Return Request and Response object to callback.|`app.delete("/", index_delete)`|
-|`.listen(host="127.0.0.1", port=5500, mode="develoepment")`|Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)|`app.listen(port=8080)`|
+|`.listen(host="127.0.0.1", port=5500, mode="development")`|Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)|`app.listen(port=8080)`|
 
 ## `Request` Class
 

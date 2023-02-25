@@ -3,8 +3,8 @@ from .request import Request
 from .response import Response
 
 import socket
-import json
 from pathlib import Path
+import os
 from datetime import datetime
 
 class Tea:
@@ -14,10 +14,12 @@ class Tea:
         self.__s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
-        self.__rules = []
+        self.__rules  = []
+        self.__static = []
         
         
     def parse_path(self, path):
+        path = path if path[0] == "/" else "/"+path
         parsed_path   = { "pathname": path, "routes": [["/", 0, ""]] }
         splitted_path = path[1:].split("/")
         for i in range(len(splitted_path)):
@@ -31,6 +33,13 @@ class Tea:
                     parsed_path["routes"].append([pathname, 0, ""])
         
         return parsed_path
+        
+        
+    def serve_static(self, path, folder_path):
+        path = path if path[0] == "/" else "/"+path
+        absolute_path = Path(folder_path if folder_path[0] != "/" else folder_path[1:])
+        # get all files in folder_path including subfoldered files
+        self.__static += list(map(lambda f: { "file": f, "path": path if (len(path) == 1 or path[-1] != "/") else path[:-1], "folder_path": str(absolute_path) }, list(absolute_path.glob("**/*.*"))))
         
     
     def get(self, path, callback):
@@ -57,48 +66,54 @@ class Tea:
         if self.__mode == "development":
             print(f"[{datetime.now().strftime('%X - %x')}] > {req.method} http://{self.__host}:{self.__port}{req.url.href}")
         
-        # rules which have same route count with request
-        same_route_count = list(filter(lambda r: len(r["path"]["routes"]) == len(req.params), self.__rules))
-        if same_route_count:
-            
-            route_count = len(same_route_count[0]["path"]["routes"])
-            is_matched = False
-            is_matched_real = False
-            matched_rule = None
+        # check if path is served as a static file
+        static_file = list(filter(lambda f: f"{str(f['file'].expanduser()).replace(f['folder_path'], '' if len(f['path']) == 1 else f['path'], 1)}" == req.url.pathname, self.__static))
+        if len(static_file) > 0:
+            res.send_file(str(static_file[-1]["file"].resolve()))
+                    
+        else:
+            # rules which have same route count with request
+            same_route_count = list(filter(lambda r: len(r["path"]["routes"]) == len(req.params), self.__rules))
+            if same_route_count:
+                
+                route_count = len(same_route_count[0]["path"]["routes"])
+                is_matched = False
+                is_matched_real = False
+                matched_rule = None
 
-            for i in range(len(same_route_count)):
-                rule = same_route_count[i]
-                is_matched = True
+                for i in range(len(same_route_count)):
+                    rule = same_route_count[i]
+                    is_matched = True
+                    
+                    if rule["path"]["pathname"] == req.url.pathname:
+                        is_matched_real = True
+                        matched_rule = rule
+                        break
+                    
+                    for j in range(route_count):
+                        # if it is prompted
+                        if rule["path"]["routes"][j][1]:
+                            rule["path"]["routes"][j][2] = req.params[j]
+                        else:
+                            if rule["path"]["routes"][j][0] != req.params[j]:
+                                is_matched = False
+                                break
+                                
+                    if is_matched:
+                        is_matched_real = True
+                        matched_rule = rule
                 
-                if rule["path"]["pathname"] == req.url.pathname:
-                    is_matched_real = True
-                    matched_rule = rule
-                    break
-                
-                for j in range(route_count):
-                    # if it is prompted
-                    if rule["path"]["routes"][j][1]:
-                        rule["path"]["routes"][j][2] = req.params[j]
-                    else:
-                        if rule["path"]["routes"][j][0] != req.params[j]:
-                            is_matched = False
-                            break
-                            
-                if is_matched:
-                    is_matched_real = True
-                    matched_rule = rule
+                if is_matched_real and matched_rule:
+                    res.body = "405 Method Not Allowed"
+                    res.status_code = 405
+                    
+                    if matched_rule["method"] == req.method:
+                        req.params = {}
+                        for i in range(route_count):
+                            if matched_rule["path"]["routes"][i][1]:
+                                req.params[matched_rule["path"]["routes"][i][0]] = matched_rule["path"]["routes"][i][2]
+                        matched_rule["callback"](req, res)
             
-            if is_matched_real and matched_rule:
-                res.body = "405 Method Not Allowed"
-                res.status_code = 405
-                
-                if matched_rule["method"] == req.method:
-                    req.params = {}
-                    for i in range(route_count):
-                        if matched_rule["path"]["routes"][i][1]:
-                            req.params[matched_rule["path"]["routes"][i][0]] = matched_rule["path"]["routes"][i][2]
-                    matched_rule["callback"](req, res)
-        
         conn.sendall(res.get_res_as_text().encode())
      
      
