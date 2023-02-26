@@ -80,17 +80,17 @@ app.get("/admin", handle_admin)
 
 # send HTML response
 def send_html(req, res):
-    res.send("<h1>Hello, World!</h1>", content_type="text/html")
+    res.send("<h1>Hello, World!</h1>", content_type="html")
 app.get("/www", send_html)
 
 # send JSON response
 def send_json(req, res):
     # json as text
-    res.send('{ "message": "Hello, World!" }', content_type="application/json")
+    res.send('{ "message": "Hello, World!" }', content_type="json")
 
     # or json as dict
     content = { "message": "Hello, World!" }
-    res.send(json.stringify(content), content_type="application/json")
+    res.send(json.stringify(content), content_type="json")
 app.get("/api", send_json)
 
 app.listen()
@@ -162,12 +162,12 @@ app.listen()
 |`Response(body="", headers=None, status_code=200, content_type="text/plain")`|Create new Response object with given parameters. Can be used without `Tea` class for simplify res stuff.|`res = Response(body="404 Not Found", status_code=404)`|
 |`.status_code`|Response status code. (Changable with `.send()` and `.send_file()`)||
 |`.status_message`|Response status message automaticly from status code.||
-|`.content_type`|Response content type. (Changable with `.send()` and `.send_file()`||
+|`.content_type`|Response content type. (Changable with `.send()` and `.send_file()`|`application/json` and `json` both valid as parameter.|
 |`.headers`|Response headers.||
 |`.body`|Response body.||
 |`.set_header(key: str, value: str)`|Add new header to response.|`res.set_header("Clear-Site-Data", "cache")`|
 |`.set_headers(headers: dict)`|Add multiple headers as dict to response.|`res.set_headers({ "Clear-Site-Data": "cache", ... })`|
-|`.send(body="", headers=None, status_code=200, content_type="text/plain")`|Send response inside the callback function.|`res.send(body='{"message": "User Created."}', status_code=201, content_type="application/json")`|
+|`.send(body="", headers=None, status_code=200, content_type="text/plain")`|Send response inside the callback function.|`res.send(body='{"message": "User Created."}', status_code=201, content_type="json")`|
 |`.send_file(filename: str, headers=None, status_code=200)`|Send file as response inside the callback function with auto content type.|`res.send_file("index.html")`|
 |`.get_res_as_text()`|Get raw response text as string.|`res_text = res.get_res_as_text()`|
 

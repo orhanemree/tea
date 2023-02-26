@@ -1,6 +1,5 @@
 from datetime import datetime
 from pathlib import Path
-from mimetypes import types_map
 
 status_list = {
     "202": "ACCEPTED",
@@ -67,12 +66,145 @@ status_list = {
     "506": "VARIANT ALSO NEGOTIATES"
 }
 
+mimetype_list = {
+    "js": "application/javascript",
+    "mjs": "application/javascript",
+    "json": "application/json",
+    "webmanifest": "application/manifest+json",
+    "doc": "application/msword",
+    "dot": "application/msword",
+    "wiz": "application/msword",
+    "bin": "application/octet-stream",
+    "a": "application/octet-stream",
+    "dll": "application/octet-stream",
+    "exe": "application/octet-stream",
+    "o": "application/octet-stream",
+    "obj": "application/octet-stream",
+    "so": "application/octet-stream",
+    "oda": "application/oda",
+    "pdf": "application/pdf",
+    "p7c": "application/pkcs7-mime",
+    "ps": "application/postscript",
+    "ai": "application/postscript",
+    "eps": "application/postscript",
+    "m3u": "application/vndapplempegurl",
+    "m3u8": "application/vndapplempegurl",
+    "xls": "application/vndms-excel",
+    "xlb": "application/vndms-excel",
+    "ppt": "application/vndms-powerpoint",
+    "pot": "application/vndms-powerpoint",
+    "ppa": "application/vndms-powerpoint",
+    "pps": "application/vndms-powerpoint",
+    "pwz": "application/vndms-powerpoint",
+    "wasm": "application/wasm",
+    "bcpio": "application/x-bcpio",
+    "cpio": "application/x-cpio",
+    "csh": "application/x-csh",
+    "dvi": "application/x-dvi",
+    "gtar": "application/x-gtar",
+    "hdf": "application/x-hdf",
+    "latex": "application/x-latex",
+    "mif": "application/x-mif",
+    "cdf": "application/x-netcdf",
+    "nc": "application/x-netcdf",
+    "p12": "application/x-pkcs12",
+    "pfx": "application/x-pkcs12",
+    "ram": "application/x-pn-realaudio",
+    "pyc": "application/x-python-code",
+    "pyo": "application/x-python-code",
+    "sh": "application/x-sh",
+    "shar": "application/x-shar",
+    "swf": "application/x-shockwave-flash",
+    "sv4cpio": "application/x-sv4cpio",
+    "sv4crc": "application/x-sv4crc",
+    "tar": "application/x-tar",
+    "tcl": "application/x-tcl",
+    "tex": "application/x-tex",
+    "texi": "application/x-texinfo",
+    "texinfo": "application/x-texinfo",
+    "roff": "application/x-troff",
+    "t": "application/x-troff",
+    "tr": "application/x-troff",
+    "man": "application/x-troff-man",
+    "me": "application/x-troff-me",
+    "ms": "application/x-troff-ms",
+    "ustar": "application/x-ustar",
+    "src": "application/x-wais-source",
+    "xsl": "application/xml",
+    "rdf": "application/xml",
+    "wsdl": "application/xml",
+    "xpdl": "application/xml",
+    "zip": "application/zip",
+    "au": "audio/basic",
+    "snd": "audio/basic",
+    "mp3": "audio/mpeg",
+    "mp2": "audio/mpeg",
+    "aif": "audio/x-aiff",
+    "aifc": "audio/x-aiff",
+    "aiff": "audio/x-aiff",
+    "ra": "audio/x-pn-realaudio",
+    "wav": "audio/x-wav",
+    "bmp": "image/x-ms-bmp",
+    "gif": "image/gif",
+    "ief": "image/ief",
+    "jpg": "image/jpeg",
+    "jpe": "image/jpeg",
+    "jpeg": "image/jpeg",
+    "png": "image/png",
+    "svg": "image/svg+xml",
+    "tiff": "image/tiff",
+    "tif": "image/tiff",
+    "ico": "image/vndmicrosofticon",
+    "ras": "image/x-cmu-raster",
+    "pnm": "image/x-portable-anymap",
+    "pbm": "image/x-portable-bitmap",
+    "pgm": "image/x-portable-graymap",
+    "ppm": "image/x-portable-pixmap",
+    "rgb": "image/x-rgb",
+    "xbm": "image/x-xbitmap",
+    "xpm": "image/x-xpixmap",
+    "xwd": "image/x-xwindowdump",
+    "eml": "message/rfc822",
+    "mht": "message/rfc822",
+    "mhtml": "message/rfc822",
+    "nws": "message/rfc822",
+    "css": "text/css",
+    "csv": "text/csv",
+    "html": "text/html",
+    "htm": "text/html",
+    "txt": "text/plain",
+    "bat": "text/plain",
+    "c": "text/plain",
+    "h": "text/plain",
+    "ksh": "text/plain",
+    "pl": "text/plain",
+    "rtx": "text/richtext",
+    "tsv": "text/tab-separated-values",
+    "py": "text/x-python",
+    "etx": "text/x-setext",
+    "sgm": "text/x-sgml",
+    "sgml": "text/x-sgml",
+    "vcf": "text/x-vcard",
+    "xml": "text/xml",
+    "mp4": "video/mp4",
+    "mpeg": "video/mpeg",
+    "m1v": "video/mpeg",
+    "mpa": "video/mpeg",
+    "mpe": "video/mpeg",
+    "mpg": "video/mpeg",
+    "mov": "video/quicktime",
+    "qt": "video/quicktime",
+    "webm": "video/webm",
+    "avi": "video/x-msvideo",
+    "movie": "video/x-sgi-movie"
+}
+
 class Response:
     
     def __init__(self, body="", headers=None, status_code=200, content_type="text/plain"):
         self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
-        self.content_type   = content_type
+        self.content_type   = content_type if "/" in content_type else mimetype_list.get(content_type, "text/plain")
         self.headers        = {}
         self.set_headers({ "Content-Type": f"{self.content_type}; charset=utf-8", "Server": "Python/Tea" })
         if headers:
@@ -98,10 +230,10 @@ class Response:
                 self.headers[key.replace("-", " ").title().replace(" ", "-")] = headers[key]
                 
     
-    def send(self, body="", headers=None, status_code=200, content_type="text/plain"):
+    def send(self, body="", headers=None, status_code=200, content_type="text_plain"):
         self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
-        self.content_type   = content_type
+        self.content_type   = content_type if "/" in content_type else mimetype_list.get(content_type, "text/plain")
         self.set_header("Content-Type", f"{self.content_type}; charset=utf-8")
         if headers:
             self.set_headers(headers)
@@ -111,7 +243,8 @@ class Response:
     def send_file(self, filename, headers=None, status_code=200):
         self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
-        self.set_header("Content-Type", f"{types_map.get('.' + filename.split('.')[-1], 'text/plain')}; charset=utf-8")
+        self.content_type   = mimetype_list.get(filename.split(".")[-1], "text/plain")
+        self.set_header("Content-Type", f"{self.content_type}; charset=utf-8")
         if headers:
             self.set_headers(headers)
         
