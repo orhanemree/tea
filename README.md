@@ -1,11 +1,11 @@
 # 🍵 Tea
 Micro HTTP library for Python.
 
+The `418 I am a teapot` code comes true.
+
 Developer Note: [Flask](https://github.com/pallets/flask) is very popular web framework for Python and it may be one of the most used. So I thought in some places comparing Tea and Flask is a good idea. At the same time, Tea has [Express.js](https://github.com/expressjs/express)-like syntax (which is web framework for JavaScript) with it's callback function syntax, Request, Response and URL objects. Also got a lot of reference from [FastAPI](https://github.com/tiangolo/fastapi) too.
 
 We can say this micro library is like their mix, to be different. It is just a "HTTP library" instead of "web framework" or "web library" because no need to exaggerate it.
-
-<p align="center"><img src="https://raw.githubusercontent.com/orhanemree/tea/master/img/banner.png" width="250"></p>
 
 ## Quick Start
 ```console

@@ -15,7 +15,120 @@ app.get("/", handle_index)
 app.listen(port=8080)
 ```
 
-## `Tea` Class
+## Concepts
+
+### Handle Different Request Methods
+```python
+from tea import Tea
+
+app = Tea()
+
+# different methods on same path
+def get_index(req, res):
+    print("GET Request")
+    # response something
+app.get("/", get_index)
+
+def post_index(req, res):
+    print("POST Request")
+    # response something
+app.post("/", post_index)
+
+def put_index(req, res):
+    print("PUT Request")
+    # response something
+app.put("/", put_index)
+
+def delete_index(req, res):
+    print("DELETE Request")
+    # response something
+app.delete("/", delete_index)
+
+app.listen()
+```
+
+### Handle Request with Params
+```python
+from tea import Tea
+
+app = Tea()
+
+def greet_user(req, res):
+    username = req.params["username"]
+    res.send(f"Hello {username}!")
+app.get("/u/:username", greet_user)
+
+def admin(req, res):
+    username = req.params["username"] # returns error now
+    res.send("Admin Page")
+app.get("/u/admin", admin)
+
+app.listen()
+```
+
+### Send Custom Response
+```python
+from tea import Tea
+import json
+
+app = Tea()
+
+# send custom status code
+def handle_admin(req, res):
+    res.send("Error: 40 Unauthorized", status_code=401)
+app.get("/admin", handle_admin)
+
+# send HTML response
+def send_html(req, res):
+    res.send("<h1>Hello, World!</h1>", content_type="text/html")
+app.get("/www", send_html)
+
+# send JSON response
+def send_json(req, res):
+    # json as text
+    res.send('{ "message": "Hello, World!" }', content_type="application/json")
+
+    # or json as dict
+    content = { "message": "Hello, World!" }
+    res.send(json.stringify(content), content_type="application/json")
+app.get("/api", send_json)
+
+app.listen()
+```
+
+### Send File Response
+```python
+from tea import Tea
+
+app = Tea()
+
+# serve static folder on path
+app.serve_static("/", "/docs")
+"""
+if your folder structure like this:
+/docs
+├── index.html
+└── /assets
+    ├── /css
+    │   └── style.css
+    └── /js
+        └── script.js
+
+GET request to path "/index.html" will return "/docs/index.html" file and
+GET request to path "/assets/css/style.css" will return "/docs/assets/css/style.css" file.
+"""
+
+# send a single file
+def send_posts(req, res):
+    res.send_file("posts.html")
+app.get("/posts.html", send_posts)
+
+app.listen()
+```
+
+## API Reference
+
+### `Tea` Class
 
 |Property|Description|Example|
 |-|-|-|
@@ -27,7 +140,7 @@ app.listen(port=8080)
 |`.delete(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with DELETE method. Return Request and Response object to callback.|`app.delete("/", index_delete)`|
 |`.listen(host="127.0.0.1", port=5500, mode="development")`|Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)|`app.listen(port=8080)`|
 
-## `Request` Class
+### `Request` Class
 
 |Property|Description|Example|
 |-|-|-|
@@ -42,7 +155,7 @@ app.listen(port=8080)
 |`.get_header(key: str)`|Get value of specific header. Return None if not exists. (Not case sensitive)|`req.get_header("user agent")`|
 |`.has_header(key: str)`|Check if header exists. (Not case sensitive)|`req.has_header("user agent")`|
 
-## `Response` Class
+### `Response` Class
 
 |Property|Description|Example|
 |-|-|-|
@@ -59,7 +172,7 @@ app.listen(port=8080)
 |`.get_res_as_text()`|Get raw response text as string.|`res_text = res.get_res_as_text()`|
 
 
-## `URL` Class
+### `URL` Class
 |Property|Description|Return Example|
 |-|-|-|
 |`URL(url: str)`|Parse url and create new URL object. `Tea` class for simplify URL stuff.|`url = URL("http://docs.python.org:80/3/library/urllib.parse.html?highlight=params#url-parsing")`|
