@@ -1,11 +1,12 @@
 from .url import URL
 
+from typing import Union
 from json import loads
 from urllib.parse import parse_qsl
 
 class Request:
     
-    def __init__(self, req):
+    def __init__(self, req: str):
         self.__parsed_req = self.parse_req(req)
         self.method       = self.__parsed_req["method"]
         self.url          = URL(self.__parsed_req["url"])
@@ -16,7 +17,7 @@ class Request:
         self.body         = self.__parsed_req["body"]
     
 
-    def parse_req(self, req):
+    def parse_req(self, req: str) -> dict:
         parsed_req = {}
         
         splitted_req = req.split("\r\n\r\n")
@@ -46,9 +47,15 @@ class Request:
         return parsed_req
     
     
-    def get_header(self, key):
+    def get_header(self, key: str) -> Union[str, None]:
+        """
+        Get value of specific header. Return None if not exists. (Not case sensitive)
+        """
         return self.headers.get(key.replace("-", " ").title().replace(" ", "-"), None)
     
     
-    def has_header(self, key):
+    def has_header(self, key: str) -> bool:
+        """
+        Check if header exists. (Not case sensitive)
+        """
         return (key.replace("-", " ").title().replace(" ", "-") in self.headers)

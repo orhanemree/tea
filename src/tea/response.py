@@ -1,3 +1,4 @@
+from typing import Union
 from datetime import datetime
 from pathlib import Path
 
@@ -201,7 +202,10 @@ mimetype_list = {
 
 class Response:
     
-    def __init__(self, body="", headers=None, status_code=200, content_type="text/plain"):
+    def __init__(self, body: str="",
+                headers: Union[dict[str, str], None]=None,
+                status_code: int=200,
+                content_type: str="text/plain"):
         self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
         self.content_type   = content_type if "/" in content_type else mimetype_list.get(content_type, "text/plain")
@@ -212,25 +216,40 @@ class Response:
         self.body = body
         
     
-    def __get_headers_as_string(self):
+    def __get_headers_as_string(self) -> str:
         return "\r\n".join([f"{key.replace('-', ' ').title().replace(' ', '-')}: {self.headers[key]}" for key in list(self.headers.keys())])
         
     
-    def get_res_as_text(self):
+    def get_res_as_text(self) -> str:
+        """
+        Get raw response text as string.
+        """
         self.set_headers({ "Content-Length": len(self.body), "Date": datetime.now() })
         return f"HTTP/1.1 {self.status_code} {status_list[str(self.status_code)]}\r\n{self.__get_headers_as_string()}\r\n\r\n{self.body}"
     
     
-    def set_header(self, key, value):
+    def set_header(self, key: str, value: str) -> None:
+        """
+        Add new header to response.
+        """
         self.headers[key.replace("-", " ").title().replace(" ", "-")] = value
                 
     
-    def set_headers(self, headers):
-            for key in headers:
-                self.headers[key.replace("-", " ").title().replace(" ", "-")] = headers[key]
+    def set_headers(self, headers: dict[str, str]) -> None:
+        """
+        Add multiple headers as dict to response.
+        """
+        for key in headers:
+            self.headers[key.replace("-", " ").title().replace(" ", "-")] = headers[key]
                 
     
-    def send(self, body="", headers=None, status_code=200, content_type="text_plain"):
+    def send(self, body: str="",
+            headers: Union[dict[str, str], None]=None,
+            status_code: int=200,
+            content_type: str="text/plain") -> None:
+        """
+        Send response inside the callback function.
+        """
         self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
         self.content_type   = content_type if "/" in content_type else mimetype_list.get(content_type, "text/plain")
@@ -240,7 +259,12 @@ class Response:
         self.body = body
         
     
-    def send_file(self, filename, headers=None, status_code=200):
+    def send_file(self, filename: str,
+                headers: dict[str, str]=None,
+                status_code: int=200) -> None:
+        """
+        Send file as response inside the callback function with auto content type.
+        """
         self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
         self.content_type   = mimetype_list.get(filename.split(".")[-1], "text/plain")

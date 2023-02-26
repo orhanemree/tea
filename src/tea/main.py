@@ -1,6 +1,7 @@
 from .request import Request
 from .response import Response
 
+from typing import Callable, Type
 import socket
 from pathlib import Path
 import os
@@ -17,7 +18,7 @@ class Tea:
         self.__static = []
         
         
-    def parse_path(self, path):
+    def parse_path(self, path: str) -> dict:
         path = path if path[0] == "/" else "/"+path
         parsed_path   = { "pathname": path, "routes": [["/", 0, ""]] }
         splitted_path = path[1:].split("/")
@@ -34,30 +35,45 @@ class Tea:
         return parsed_path
         
         
-    def serve_static(self, path, folder_path):
+    def serve_static(self, path: str, folder_path: str) -> None:
+        """
+        Serve static files in specific folder on given path.
+        """
         path = path if path[0] == "/" else "/"+path
         absolute_path = Path(folder_path if folder_path[0] != "/" else folder_path[1:])
         # get all files in folder_path including subfoldered files
         self.__static += list(map(lambda f: { "file": f, "path": path if (len(path) == 1 or path[-1] != "/") else path[:-1], "folder_path": str(absolute_path) }, list(absolute_path.glob("**/*.*"))))
         
-    
-    def get(self, path, callback):
+
+    def get(self, path: str, callback: Callable[[Type[Request], Type[Response]], None]) -> None:
+        """
+        Add new rule on path with GET method. Return Request and Response object to callback.
+        """
         self.__rules.append({ "method": "GET", "path": self.parse_path(path), "callback": callback })
         
         
-    def post(self, path, callback):
+    def post(self, path: str, callback: Callable[[Type[Request], Type[Response]], None]) -> None:
+        """
+        Add new rule on path with POST method. Return Request and Response object to callback.
+        """
         self.__rules.append({ "method": "POST", "path": self.parse_path(path), "callback": callback })
         
         
-    def put(self, path, callback):
+    def put(self, path: str, callback: Callable[[Type[Request], Type[Response]], None]) -> None:
+        """
+        Add new rule on path with PUT method. Return Request and Response object to callback.
+        """
         self.__rules.append({ "method": "PUT", "path": self.parse_path(path), "callback": callback })
         
         
-    def delete(self, path, callback):
+    def delete(self, path: str, callback: Callable[[Type[Request], Type[Response]], None]) -> None:
+        """
+        Add new rule on path with DELETE method. Return Request and Response object to callback.
+        """
         self.__rules.append({ "method": "DELETE", "path": self.parse_path(path), "callback": callback })
         
         
-    def __handle_req(self, req, conn):
+    def __handle_req(self, req: Type[Request], conn: Type[socket.socket]) -> None:
         req = Request(req)
         # default error message
         res = Response(body="404 Not Found", status_code=404)
@@ -116,7 +132,10 @@ class Tea:
         conn.sendall(res.get_res_as_text().encode())
      
      
-    def listen(self, host="127.0.0.1", port=5500, mode="development"):
+    def listen(self, host: str="127.0.0.1", port: int=5500, mode: str="development") -> None:
+        """
+        Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)
+        """
         self.__host = host
         self.__port = port
         self.__mode = mode.lower()
