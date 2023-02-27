@@ -23,26 +23,35 @@ from tea import Tea
 
 app = Tea()
 
-# different methods on same path
-def get_index(req, res):
+# specific methods on same path
+def index_all(req, res):
     print("GET Request")
     # response something
-app.get("/", get_index)
+app.get("/", index_all)
 
-def post_index(req, res):
+def index_post(req, res):
     print("POST Request")
     # response something
-app.post("/", post_index)
+app.post("/", index_post)
 
-def put_index(req, res):
+def index_put(req, res):
     print("PUT Request")
     # response something
-app.put("/", put_index)
+app.put("/", index_put)
 
-def delete_index(req, res):
+def index_delete(req, res):
     print("DELETE Request")
     # response something
-app.delete("/", delete_index)
+app.delete("/", index_delete)
+
+# all valid methods on the path
+# Note: if set specific method on same path with .all() then specific method will be called
+def index_all(req, res):
+    if req.method == "GET":
+        # act like app.get()
+    elif req.method == "DELETE":
+        # act like app.delete()
+app.all("/admin", index_all)
 
 app.listen()
 ```
@@ -140,6 +149,7 @@ app.listen()
 |`.post(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with POST method. Return Request and Response object to callback.|`app.post("/", index_post)`|
 |`.put(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with PUT method. Return Request and Response object to callback.|`app.put("/", index_put)`|
 |`.delete(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with DELETE method. Return Request and Response object to callback.|`app.delete("/", index_delete)`|
+|`.all(path: str, callback: function(req: Request, res: Response))`|Add new rule on path for all valid methods. Including GET, POST, PUT, DELETE, PATCH, OPTIONS etc.|`app.all("/", index_all)`|
 |`.listen(host="127.0.0.1", port=5500, mode="development")`|Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)|`app.listen(port=8080)`|
 
 ### `Request` Class

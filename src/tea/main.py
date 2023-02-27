@@ -73,6 +73,12 @@ class Tea:
         self.__rules.append({ "method": "DELETE", "path": self.parse_path(path), "callback": callback })
         
         
+    def all(self, path: str, callback: Callable[[Type[Request], Type[Response]], None]) -> None:
+        """
+        Add new rule on path for all valid methods. Including GET, POST, PUT, DELETE, PATCH, OPTIONS etc.
+        """
+        self.__rules.append({ "method": "ALL", "path": self.parse_path(path), "callback": callback })
+        
     def __handle_req(self, req: Type[Request], conn: Type[socket.socket]) -> None:
         req = Request(req)
         # default error message
@@ -96,6 +102,7 @@ class Tea:
                 is_matched_real = False
                 matched_rules = []
 
+                # get all matched paths regardless of methods
                 for i in range(len(same_route_count)):
                     rule = same_route_count[i]
                     is_matched = True
@@ -118,9 +125,13 @@ class Tea:
                         matched_rules.append(rule)
                 
                 if is_matched_real and len(matched_rules) > 0:
+                    # most recently added rule takes precedence
+                    matched_rules.reverse()
                     res.body = "405 Method Not Allowed"
                     res.status_code = 405
                     
+                    # rule with specific method takes precedence against ALL
+                    is_matched = False
                     for matched_rule in matched_rules:
                         if matched_rule["method"] == req.method:
                             req.params = {}
@@ -128,7 +139,20 @@ class Tea:
                                 if matched_rule["path"]["routes"][i][1]:
                                     req.params[matched_rule["path"]["routes"][i][0]] = matched_rule["path"]["routes"][i][2]
                             matched_rule["callback"](req, res)
+                            is_matched = True
                             break
+                        
+                    if not is_matched:
+                        for matched_rule in matched_rules:
+                            if matched_rule["method"] == "ALL":
+                                req.params = {}
+                                for i in range(route_count):
+                                    if matched_rule["path"]["routes"][i][1]:
+                                        req.params[matched_rule["path"]["routes"][i][0]] = matched_rule["path"]["routes"][i][2]
+                                matched_rule["callback"](req, res)
+                                is_matched = True
+                                break
+                            
             
         conn.sendall(res.get_res_as_text().encode())
      
