@@ -89,12 +89,12 @@ class Tea:
         else:
             # rules which have same route count with request
             same_route_count = list(filter(lambda r: len(r["path"]["routes"]) == len(req.params), self.__rules))
-            if same_route_count:
+            if len(same_route_count) > 0:
                 
                 route_count = len(same_route_count[0]["path"]["routes"])
                 is_matched = False
                 is_matched_real = False
-                matched_rule = None
+                matched_rules = []
 
                 for i in range(len(same_route_count)):
                     rule = same_route_count[i]
@@ -102,8 +102,7 @@ class Tea:
                     
                     if rule["path"]["pathname"] == req.url.pathname:
                         is_matched_real = True
-                        matched_rule = rule
-                        break
+                        matched_rules.append(rule)
                     
                     for j in range(route_count):
                         # if it is prompted
@@ -116,18 +115,20 @@ class Tea:
                                 
                     if is_matched:
                         is_matched_real = True
-                        matched_rule = rule
+                        matched_rules.append(rule)
                 
-                if is_matched_real and matched_rule:
+                if is_matched_real and len(matched_rules) > 0:
                     res.body = "405 Method Not Allowed"
                     res.status_code = 405
                     
-                    if matched_rule["method"] == req.method:
-                        req.params = {}
-                        for i in range(route_count):
-                            if matched_rule["path"]["routes"][i][1]:
-                                req.params[matched_rule["path"]["routes"][i][0]] = matched_rule["path"]["routes"][i][2]
-                        matched_rule["callback"](req, res)
+                    for matched_rule in matched_rules:
+                        if matched_rule["method"] == req.method:
+                            req.params = {}
+                            for i in range(route_count):
+                                if matched_rule["path"]["routes"][i][1]:
+                                    req.params[matched_rule["path"]["routes"][i][0]] = matched_rule["path"]["routes"][i][2]
+                            matched_rule["callback"](req, res)
+                            break
             
         conn.sendall(res.get_res_as_text().encode())
      
