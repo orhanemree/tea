@@ -10,6 +10,8 @@ from datetime import datetime
 class Tea:
 
     def __init__(self):
+        self.max_buffer_size = 1024
+        
         # socket server setup
         self.__s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.__s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -174,7 +176,7 @@ class Tea:
         while 1:
             try:
                 conn, addr = self.__s.accept()
-                req = conn.recv(1024)
+                req = conn.recv(self.max_buffer_size)
                 self.__handle_req(req.decode(), conn)
                 conn.close()
             except KeyboardInterrupt:

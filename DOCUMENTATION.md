@@ -152,6 +152,10 @@ app.listen()
 |`.all(path: str, callback: function(req: Request, res: Response))`|Add new rule on path for all valid methods. Including GET, POST, PUT, DELETE, PATCH, OPTIONS etc.|`app.all("/", index_all)`|
 |`.listen(host="127.0.0.1", port=5500, mode="development")`|Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)|`app.listen(port=8080)`|
 
+|Property|Description|Example|
+|-|-|-|
+|`.max_buffer_size`|Maximum buffer size of the request. 1024 by default.|`app.max_buffer_size = 512`|
+
 ### `Request` Class
 
 |Method|Description|Example|
