@@ -3,6 +3,7 @@ from .response import Response
 
 from typing import Callable, Type
 import socket
+from select import select
 from pathlib import Path
 import os
 from datetime import datetime
@@ -80,6 +81,7 @@ class Tea:
         Add new rule on path for all valid methods. Including GET, POST, PUT, DELETE, PATCH, OPTIONS etc.
         """
         self.__rules.append({ "method": "ALL", "path": self.parse_path(path), "callback": callback })
+        
         
     def __handle_req(self, req: Type[Request], conn: Type[socket.socket]) -> None:
         req = Request(req)
@@ -173,12 +175,29 @@ class Tea:
         if self.__mode == "development":
             print(f"Server is running on http://{self.__host}:{self.__port}.\nPress ^C to close server.")
 
+        self.__in_sockets  = [self.__s]
+        out_sockets        = [] # actually, we're not gonna use this
+        x_sockets          = [] # this too
+
         while 1:
             try:
-                conn, addr = self.__s.accept()
-                req = conn.recv(self.max_buffer_size)
-                self.__handle_req(req.decode(), conn)
-                conn.close()
+                readable, _, _ = select(self.__in_sockets, out_sockets, x_sockets)
+                for client in readable:
+                    # continue if connection is already closed
+                    if client.fileno() == -1: continue
+                    
+                    # handle new connection
+                    if client is self.__s:
+                        conn, addr = self.__s.accept()
+                        self.__in_sockets.append(conn)
+                        
+                    # handle the request
+                    else:                        
+                        req = client.recv(self.max_buffer_size)
+                        self.__handle_req(req.decode(), client)
+                        self.__in_sockets.remove(client)
+                        client.close()
+
             except KeyboardInterrupt:
                 self.__s.close()
                 print(f"\n{'Server closed.' if self.__mode == 'development' else ''}")
