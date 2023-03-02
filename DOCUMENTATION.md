@@ -160,7 +160,7 @@ app.listen()
 
 |Method|Description|Example|
 |-|-|-|
-|`Request(req: str)`|Parse raw HTTP request and create new Request object. Can be used without `Tea` class for simplify req stuff.|`req = Req("GET / HTTP/1.1\r\n...")`|
+|`Request(req: str)`|Parse raw HTTP request and create new Request object. Can be used without `Tea` class for simplify req stuff.|`req = Request("GET / HTTP/1.1\r\n...")`|
 |`.get_header(key: str)`|Get value of specific header. Return None if not exists. (Not case sensitive)|`req.get_header("user agent")`|
 |`.has_header(key: str)`|Check if header exists. (Not case sensitive)|`req.has_header("user agent")`|
 
