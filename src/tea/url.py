@@ -3,10 +3,10 @@ from urllib.parse import urlparse
 class URL:
     
     def __init__(self, url: str):
-        self.parse_url(url)
+        self.__parse_url(url)
 
 
-    def parse_url(self, url: str) -> None:
+    def __parse_url(self, url: str) -> None:
         url = urlparse(url)
         # customized to make it more like javascript URL standard
         # see https://developer.mozilla.org/en-US/docs/Web/API/URL for reference
