@@ -9,6 +9,9 @@ class WebsocketClient:
 
     # stolen from https://stackoverflow.com/a/30829965
     def decode_msg(self, msg: bytes) -> str:
+        """
+        Decode websocket message from data frame bytes to string.
+        """
         byteArray      = msg 
         datalength     = byteArray[1] & 127
         indexFirstMask = 2 
@@ -32,6 +35,9 @@ class WebsocketClient:
     
     # stolen from https://stackoverflow.com/a/30829965
     def encode_msg(self, msg: str) -> bytes:
+        """
+        Encode websocket message from string to data frame bytes.
+        """
         bytesFormatted = []
         bytesFormatted.append(129)
         bytesRaw = msg.encode()
@@ -59,9 +65,15 @@ class WebsocketClient:
     
     
     def read(self, max_buffer_size: int=1024) -> bytes:
+        """
+        Read message from websocket client.
+        """
         return self.decode_msg(self.__socket.recv(max_buffer_size))
     
     
     def write(self, msg: str="") -> None:
+        """
+        Write message to websocket client.
+        """
         self.msg = self.encode_msg(msg)
         self.__socket.send(self.msg)

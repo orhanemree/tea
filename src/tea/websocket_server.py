@@ -13,10 +13,16 @@ class WebsocketServer:
         
         
     def add_client(self, client: Type[WebsocketClient]) -> None:
+        """
+        Add client to websocket server.
+        """
         self.__clients.append(client)
         
     
     def get_clients(self) -> list:
+        """
+        Get all active clients in the websocket server.
+        """
         return self.__clients
 
 

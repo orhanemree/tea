@@ -89,6 +89,9 @@ class Tea:
             
     
     def websocket(self, path: str) -> Type[WebsocketServer]:
+        """
+        Create a websocket server on path.
+        """
         ws_server      = WebsocketServer()
         self.__ws_rule = { "path": self.parse_path(path), "ws_server": ws_server }
         return ws_server
@@ -211,7 +214,7 @@ class Tea:
         self.__close_conn(conn)
     
     
-    def __close_conn(self, conn: Type[socket.socket]):
+    def __close_conn(self, conn: Type[socket.socket]) -> None:
         self.__in_sockets.remove(conn)
         conn.close()
         
