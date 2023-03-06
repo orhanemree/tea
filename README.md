@@ -1,7 +1,7 @@
 # 🍵 Tea
-Micro HTTP library for Python.
+Micro HTTP library with WebSocket support for Python.
 
-Tea has [Express.js](https://github.com/expressjs/express)-like syntax (which is web framework for JavaScript) with it's callback function syntax, Request, Response and URL objects. Got a lot of reference from popular web frameweorks like [Flask](https://github.com/pallets/flask), [FastAPI](https://github.com/tiangolo/fastapi) and Express.js. Tea is like lightweight mix of their best features.
+Tea has [Express.js](https://github.com/expressjs/express)-like syntax (which is web framework for JavaScript) with it's callback function syntax, Request, Response and URL objects. Got a lot of reference from popular web frameweorks like [Flask](https://github.com/pallets/flask), [FastAPI](https://github.com/tiangolo/fastapi) and Express.js. Tea is like lightweight mix of their best features. Of course pretty good with WebSocket support.
 
 Finally, the `418 I am a teapot` code comes true. Enjoy!
 
@@ -24,13 +24,14 @@ app.listen(port=8080)
 ```
 
 ## Advantages of Tea
-* Lightweight. No external requirement and the package cost is only ~7 KB.
+* Lightweight. No external requirement and the package cost is only ~10 KB.
 * More control over the Request, Response and URL objects. This objects can be used outside the library structure.
 * Easy to use and helpful on handling simple HTTP requests.
+* Built-in WebSocket support.
 
 ## Disadvantages of Tea
 * Limited features and methods.
-* No template engine like Flask.
+* No template engine.
 * Callback function syntax is not really Pythonic without decorators. (Done on purpose but true.)
 * Not sure if it's ready for production.
 

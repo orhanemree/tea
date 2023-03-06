@@ -15,6 +15,43 @@ app.get("/", handle_index)
 app.listen(port=8080)
 ```
 
+## Simple WebSocket App
+```python
+from tea import Tea
+
+app = Tea()
+
+ws = app.websocket("/ws")
+
+# handle new connection
+def handle_open(e):
+    print("New client connected!")
+ws.onopen = handle_open
+
+# handle message from client
+def handle_message(e):
+    msg = e.data
+    print("Message from client:", msg)
+
+    # send message to client who sent the message
+    e.client.write("Hi, got your message: ", msg)
+
+    # send message to all active clients
+    for client in ws.get_clients():
+        # except the client who sent the message
+        if client != e.client:
+            client.write("Client sent message: ", msg)
+
+ws.onmessage = handle_message
+
+# handle client disconnection
+def handle_close(e):
+    print("Client disconnected!")
+ws.onclose = handle_close
+
+app.listen(port=8080)
+```
+
 ## Concepts
 
 ### Handle Different Request Methods
@@ -150,6 +187,7 @@ app.listen()
 |`.put(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with PUT method. Return Request and Response object to callback.|`app.put("/", index_put)`|
 |`.delete(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with DELETE method. Return Request and Response object to callback.|`app.delete("/", index_delete)`|
 |`.all(path: str, callback: function(req: Request, res: Response))`|Add new rule on path for all valid methods. Including GET, POST, PUT, DELETE, PATCH, OPTIONS etc.|`app.all("/", index_all)`|
+|`.websocket(path: str)`|Create a websocket server on path. Return WebsocketServer object which has callbacks like .onopen, .onmessage etc.|`ws = app.websocket("/ws")`|
 |`.listen(host="127.0.0.1", port=5500, mode="development")`|Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)|`app.listen(port=8080)`|
 
 |Property|Description|Example|
@@ -167,7 +205,7 @@ app.listen()
 |Property|Description|Example|
 |-|-|-|
 |`.method`|Request method.||
-|`.url`|Request url as URL object.|`req.url.host`|
+|`.url`|Request url as `URL` object.|`req.url.host`|
 |`.params`|Request path params as dict.|`username = req.params["username"] # path=/:username`|
 |`.query`|Request query (search) params as dict.|`username = req.query["username"] # path=/`|
 |`.http_version`|Request HTTP version.||
@@ -189,9 +227,62 @@ app.listen()
 |-|-|-|
 |`.status_code`|Response status code. (Changable with `.send()` and `.send_file()`)||
 |`.status_message`|Response status message automaticly from status code.||
-|`.content_type`|Response content type. (Changable with `.send()` and `.send_file()`|`application/json` and `json` both valid as parameter.|
+|`.content_type`|Response content type. (Changable with `.send()` and `.send_file()`)|`application/json` and `json` both valid as parameter.|
 |`.headers`|Response headers as dict.||
 |`.body`|Response body.||
+
+### `WebsocketServer` Class
+|Method|Description|Example|
+|-|-|-|
+|`.get_clients()`|Get all active clients in the websocket server. Return list of `WebsocketClient` object.|`clients = ws.get_clients()`|
+
+|Property|Description|Example|
+|-|-|-|
+|`.onopen`|Callback function for new connection. Return `WebsocketServer.Event` object.|`ws.onopen = onopen`|
+|`.onmessage`|Callback function for new message.Return `WebsocketServer.Event` object.|`ws.onmessage = onmessage`|
+|`.onclose`|Callback function for connection close.Return `WebsocketServer.Event` object.|`ws.onclose = onclose`|
+
+### `WebsocketServer.Event` Class
+|Property|Description|Example|
+|-|-|-|
+|`.client`|WebsocketClient object of the event.|`client = e.client`|
+|`.ready_state`|Websocket ready state. 1 if open, 3 if closed.|`ready_state = e.ready_state`|
+|`.data`|Readed data from websocket client. None if it's outside the `.onmessage` callback.|`data = e.data`|
+
+### `WebsocketClient` Class
+|Method|Description|Example|
+|-|-|-|
+|`.write()`|Write message to websocket client.|`client.write("hello, world!")`|
+
+#### ⚠ Keep in Mind
+* You can't create `WebsocketServer` and `WebsocketClient` objects directly in your code. You need to create a websocket server with `ws = app.websocket()` as mentioned in `Tea` object. For websocket clients you can use:
+```python
+ws = app.websocket("/ws")
+
+clients = ws.get_clients() # this or ...
+for client in clients:
+    # do something with client
+
+def onopen(e):
+    client = e.client # ... something like this
+ws.onopen = onopen
+```
+* Limitations of WebSocket in Tea (for now, under development):
+    - You can read and write only string data.
+    - You can't pass parameters to path.
+    ```python
+    ws = app.websocket("/ws/:username") # not valid
+    ```
+    - You can create just one websocket server in one app.
+    ```python
+    ws1 = app.websocket("/ws1") # not valid
+    ws2 = app.websocket("/ws2") # last one becomes valid
+    ```
+    - You can't use another methods like `.get()`, `.post()` etc. on websocket path.
+    ```python
+    ws = app.websocket("/ws")
+    app.get("/ws", handle_ws) # not valid
+    ```
 
 ### `URL` Class
 |Property|Description|Return Example|

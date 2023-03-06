@@ -90,7 +90,7 @@ class Tea:
     
     def websocket(self, path: str) -> Type[WebsocketServer]:
         """
-        Create a websocket server on path.
+        Create a websocket server on path. Return WebsocketServer object which has callbacks like .onopen, .onmessage etc.
         """
         ws_server      = WebsocketServer()
         self.__ws_rule = { "path": self.parse_path(path), "ws_server": ws_server }

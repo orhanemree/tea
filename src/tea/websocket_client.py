@@ -71,7 +71,7 @@ class WebsocketClient:
         return self.decode_msg(self.__socket.recv(max_buffer_size))
     
     
-    def write(self, msg: str="") -> None:
+    def write(self, msg: str) -> None:
         """
         Write message to websocket client.
         """
