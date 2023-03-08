@@ -34,13 +34,13 @@ def handle_message(e):
     print("Message from client:", msg)
 
     # send message to client who sent the message
-    e.client.write("Hi, got your message: ", msg)
+    e.client.write("Hi, got your message: " + msg)
 
     # send message to all active clients
     for client in ws.get_clients():
         # except the client who sent the message
         if client != e.client:
-            client.write("Client sent message: ", msg)
+            client.write("Client sent message: " + msg)
 
 ws.onmessage = handle_message
 
