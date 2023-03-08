@@ -33,9 +33,12 @@ class Request:
         
         # parse headers
         lines      = headers.split("\r\n")
-        first_line = lines.pop(0) # eg. GET / HTTP/1.1
-        parsed_req["method"], parsed_req["url"], parsed_req["http_version"] = first_line.strip().split(" ")
-        parsed_req["headers"] = {}
+        first_line = lines.pop(0).strip().split(" ") # eg. [GET, /, HTTP/1.1]
+        
+        parsed_req["method"]       = first_line[0] if len(first_line) > 0 else ""
+        parsed_req["url"]          = first_line[1] if len(first_line) > 1 else ""
+        parsed_req["http_version"] = first_line[2] if len(first_line) > 2 else ""
+        parsed_req["headers"]      = {}
         
         for line in lines:
             if ":" in line: # eg. host: localhost:5500

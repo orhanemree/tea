@@ -145,8 +145,13 @@ class Tea:
                 return
         
         # check if path is served as a static file
-        static_file = list(filter(lambda f: f"{str(f['file'].expanduser()).replace(f['folder_path'], '' if len(f['path']) == 1 else f['path'], 1)}" == req.url.pathname, self.__static))
+        print(self.__static)
+        print(dir(self.__static[0]["file"]))
+        print(self.__static[0]["file"].expanduser())
+        static_file = list(filter(lambda f: str(f["file"].expanduser()).replace(f["folder_path"], "" if len(f["path"]) == 1 else f["path"], 1).replace("\\", "/") == req.url.pathname, self.__static))
+        print(static_file)
         if len(static_file) > 0:
+            print(str(static_file[-1]["file"].resolve()))
             res.send_file(str(static_file[-1]["file"].resolve()))
                     
         else:
