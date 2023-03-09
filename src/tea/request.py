@@ -18,7 +18,7 @@ class Request:
     
 
     def parse_req(self, req: str) -> dict:
-        parsed_req = {}
+        parsed_req = { "headers": {}, "body": "" }
         
         splitted_req = req.split("\r\n\r\n")
         headers = splitted_req.pop(0)
@@ -38,7 +38,6 @@ class Request:
         parsed_req["method"]       = first_line[0] if len(first_line) > 0 else ""
         parsed_req["url"]          = first_line[1] if len(first_line) > 1 else ""
         parsed_req["http_version"] = first_line[2] if len(first_line) > 2 else ""
-        parsed_req["headers"]      = {}
         
         for line in lines:
             if ":" in line: # eg. host: localhost:5500
