@@ -3,7 +3,7 @@ from .response import Response
 from .websocket_server import WebsocketServer
 from .websocket_client import WebsocketClient
 
-from typing import Callable, Type
+from typing import Callable, Type, Union
 import socket
 from select import select
 from pathlib import Path
@@ -11,6 +11,7 @@ import os
 from datetime import datetime
 from hashlib import sha1
 from base64 import b64encode
+import random
 
 class Tea:
 
@@ -97,7 +98,7 @@ class Tea:
         return ws_server
     
     
-    def __do_ws_handshake(self, req: Type[Request], res: Type[Response], conn: Type[socket.socket]) -> bool:
+    def __do_ws_handshake(self, req: Type[Request], res: Type[Response], conn: Type[socket.socket]) -> Union[int, Type[WebsocketClient]]:
         # returns success or fail state
         # check if its a valid ws handshake request
         is_valid = req.method == "GET" and\
@@ -119,11 +120,14 @@ class Tea:
         hashed = sha1((ws_client_key + "258EAFA5-E914-47DA-95CA-C5AB0DC85B11").encode())
         ws_accept_key = b64encode(hashed.digest()).decode()
         res.send(headers={ "Upgrade": "Websocket", "Connection": "Upgrade", "Sec-WebSocket-Accept": ws_accept_key }, status_code=101)
-        self.__ws_sockets.append(conn)
-        self.__ws_rule["ws_server"].add_client(WebsocketClient(conn))
+        self.__ws_sockets["sockets"].append(conn)
+        ws_client_id = "".join([str(random.randint(0, 9)) for _ in range(15)])
+        self.__ws_sockets["ids"].append(ws_client_id)
+        new_ws_client = WebsocketClient(conn, ws_client_id)
+        self.__ws_rule["ws_server"].add_client(new_ws_client)
         conn.sendall(res.get_res_as_text().encode())
         # not closing the websocket connection
-        return 1
+        return new_ws_client
     
         
     def __handle_req(self, req: Type[Request], conn: Type[socket.socket]) -> None:
@@ -137,9 +141,8 @@ class Tea:
         # check if its websocket handshake request
         if self.__ws_rule:
             if req.url.pathname == self.__ws_rule["path"]["pathname"]:
-                success = self.__do_ws_handshake(req, res, conn)
-                ws_client = WebsocketClient(socket)
-                if success:
+                ws_client = self.__do_ws_handshake(req, res, conn)
+                if ws_client:
                     event = self.__ws_rule["ws_server"].Event(ws_client, 1)
                     self.__ws_rule["ws_server"].onopen(event)
                 return
@@ -236,7 +239,7 @@ class Tea:
         self.__in_sockets  = [self.__s]
         out_sockets        = [] # actually, we're not gonna use this
         x_sockets          = [] # this too
-        self.__ws_sockets  = []
+        self.__ws_sockets  = { "sockets": [], "ids": [] }
 
         while 1:
             try:
@@ -252,15 +255,16 @@ class Tea:
                     
                     # handle websocket message
                     # thanks to https://github.com/AlexanderEllis/websocket-from-scratch
-                    elif readable in self.__ws_sockets:
-                        ws_client = WebsocketClient(readable)
+                    elif readable in self.__ws_sockets["sockets"]:
+                        ws_client_id = self.__ws_sockets["ids"][self.__ws_sockets["sockets"].index(readable)]
+                        ws_client = list(filter(lambda c: c.id == ws_client_id, self.__ws_rule["ws_server"].get_clients()))[0]
                         msg = ws_client.read(self.max_buffer_size)
                         if msg:
                             event = self.__ws_rule["ws_server"].Event(ws_client, 1, msg)
                             self.__ws_rule["ws_server"].onmessage(event)
                         else:
                             self.__close_conn(readable)
-                            self.__ws_sockets.remove(readable)
+                            self.__ws_sockets["sockets"].remove(readable)
                             event = self.__ws_rule["ws_server"].Event(ws_client, 3)
                             self.__ws_rule["ws_server"].onclose(event)
                         

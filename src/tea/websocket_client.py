@@ -3,9 +3,9 @@ from socket import socket
 
 class WebsocketClient:
         
-    def __init__(self, socket: Type[socket]):
+    def __init__(self, socket: Type[socket], id_):
         self.__socket = socket
-        
+        self.id       = id_
 
     # stolen from https://stackoverflow.com/a/30829965
     def decode_msg(self, msg: bytes) -> str:
@@ -68,7 +68,10 @@ class WebsocketClient:
         """
         Read message from websocket client.
         """
-        return self.decode_msg(self.__socket.recv(max_buffer_size))
+        msg_in_bytes = self.__socket.recv(max_buffer_size)
+        if msg_in_bytes:
+            return self.decode_msg(msg_in_bytes)
+        return ""
     
     
     def write(self, msg: str) -> None:

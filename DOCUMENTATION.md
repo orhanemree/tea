@@ -39,7 +39,7 @@ def handle_message(e):
     # send message to all active clients
     for client in ws.get_clients():
         # except the client who sent the message
-        if client != e.client:
+        if client.id != e.client.id:
             client.write("Client sent message: " + msg)
 
 ws.onmessage = handle_message
@@ -253,6 +253,10 @@ app.listen()
 |Method|Description|Example|
 |-|-|-|
 |`.write()`|Write message to websocket client.|`client.write("hello, world!")`|
+
+|Property|Description|Example|
+|-|-|-|
+|`.id`|Random 15 digit id of client.|`client.id`|
 
 #### ⚠ Keep in Mind
 * You can't create `WebsocketServer` and `WebsocketClient` objects directly in your code. You need to create a websocket server with `ws = app.websocket()` as mentioned in `Tea` object. For websocket clients you can use:
