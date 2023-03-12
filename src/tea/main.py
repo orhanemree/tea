@@ -228,7 +228,7 @@ class Tea:
         """
         self.__host = host
         self.__port = port
-        self.__dev  = dev.lower()
+        self.__dev  = dev
         
         self.__s.bind((self.__host, self.__port))
         self.__s.listen()

@@ -9,7 +9,7 @@ def readme():
 
 setup(
     name="tea-web",
-    version="0.5.8",
+    version="0.5.9",
     description="Micro HTTP library with WebSocket support for Python.",
     long_description=readme(),
     long_description_content_type="text/markdown",
