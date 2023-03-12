@@ -98,7 +98,7 @@ class Tea:
         return ws_server
     
     
-    def __do_ws_handshake(self, req: Type[Request], res: Type[Response], conn: Type[socket.socket]) -> Union[int, Type[WebsocketClient]]:
+    def __do_ws_handshake(self, req: Type[Request], res: Type[Response], conn: Type[socket.socket]) -> Union[None, Type[WebsocketClient]]:
         # returns success or fail state
         # check if its a valid ws handshake request
         is_valid = req.method == "GET" and\
@@ -113,7 +113,7 @@ class Tea:
             res.send("400 Bad Request", status_code=400)
             conn.sendall(res.get_res_as_text().encode())
             self.__close_conn(conn)
-            return 0
+            return None
         
         # do the handshake if valid
         ws_client_key = req.get_header("Sec-WebSocket-Key")
@@ -135,7 +135,7 @@ class Tea:
         # default error message
         res = Response(body="404 Not Found", status_code=404)
         
-        if self.__mode == "development":
+        if self.__dev == "development":
             print(f"[{datetime.now().strftime('%X - %x')}] > {req.method} http://{self.__host}:{self.__port}{req.url.href}")
         
         # check if its websocket handshake request
@@ -222,18 +222,18 @@ class Tea:
         conn.close()
         
      
-    def listen(self, host: str="127.0.0.1", port: int=5500, mode: str="development") -> None:
+    def listen(self, host: str="127.0.0.1", port: int=5500, dev: bool=True) -> None:
         """
         Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)
         """
         self.__host = host
         self.__port = port
-        self.__mode = mode.lower()
+        self.__dev  = dev.lower()
         
         self.__s.bind((self.__host, self.__port))
         self.__s.listen()
         
-        if self.__mode == "development":
+        if self.__dev == "development":
             print(f"Server is running on http://{self.__host}:{self.__port}.\nPress ^C to close server.")
 
         self.__in_sockets  = [self.__s]
@@ -275,5 +275,5 @@ class Tea:
 
             except KeyboardInterrupt:
                 self.__s.close()
-                print(f"\n{'Server closed.' if self.__mode == 'development' else ''}")
+                print(f"\n{'Server closed.' if self.__dev == 'development' else ''}")
                 exit(0)

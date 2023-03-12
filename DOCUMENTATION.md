@@ -188,7 +188,7 @@ app.listen()
 |`.delete(path: str, callback: function(req: Request, res: Response))`|Add new rule on path with DELETE method. Return Request and Response object to callback.|`app.delete("/", index_delete)`|
 |`.all(path: str, callback: function(req: Request, res: Response))`|Add new rule on path for all valid methods. Including GET, POST, PUT, DELETE, PATCH, OPTIONS etc.|`app.all("/", index_all)`|
 |`.websocket(path: str)`|Create a websocket server on path. Return WebsocketServer object which has callbacks like .onopen, .onmessage etc.|`ws = app.websocket("/ws")`|
-|`.listen(host="127.0.0.1", port=5500, mode="development")`|Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)|`app.listen(port=8080)`|
+|`.listen(host="127.0.0.1", port=5500, dev=True)`|Start the HTTP server. Print info and error messages if development mode on. (Should be come after other app methods.)|`app.listen(port=8080)`|
 
 |Property|Description|Example|
 |-|-|-|
