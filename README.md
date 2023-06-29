@@ -1,5 +1,5 @@
 # 🍵 Tea
-Micro HTTP library for Python.
+Micro HTTP library in Python for building web servers.
 
 Tea has [Express.js](https://github.com/expressjs/express)-like syntax (which is web framework for JavaScript) with it's callback function syntax, Request, Response and URL objects. Got a lot of reference from popular web frameweorks like [Flask](https://github.com/pallets/flask), [FastAPI](https://github.com/tiangolo/fastapi) and Express.js. Tea is like lightweight mix of their best features.
 
