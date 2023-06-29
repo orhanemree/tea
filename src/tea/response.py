@@ -1,6 +1,6 @@
-from typing import Union
-from datetime import datetime
-from pathlib import Path
+from time import strftime
+from os import path
+
 
 status_list = {
     "202": "ACCEPTED",
@@ -200,81 +200,140 @@ mimetype_list = {
     "movie": "video/x-sgi-movie"
 }
 
+
 class Response:
     
-    def __init__(self, body: str="",
-                headers: Union[dict[str, str], None]=None,
-                status_code: int=200,
-                content_type: str="text/plain"):
+    
+    def __init__(self, body: str="", headers={}, status_code: int=200, content_type: str="text/plain"):
+        
         self.status_code    = status_code
-        self.status_message = status_list[str(self.status_code)]
-        self.content_type   = content_type if "/" in content_type else mimetype_list.get(content_type, "text/plain")
-        self.headers        = {}
-        self.set_headers({ "Content-Type": f"{self.content_type}; charset=utf-8", "Server": "Python/Tea" })
-        if headers:
-            self.set_headers(headers)
+        self.status_message = status_list[str(self.status_code)].title()
+        self.content_type   = content_type if "/" in content_type else mimetype_list.get(content_type, content_type)
+        
+        # set body
         self.body = body
         
-    
-    def __get_headers_as_string(self) -> str:
-        return "\r\n".join([f"{key.replace('-', ' ').title().replace(' ', '-')}: {self.headers[key]}" for key in list(self.headers.keys())])
+        # set headers
+        self.headers = headers
+        self._set_default_headers()
         
     
+    def _get_headers_as_string(self) -> str:
+        
+        """
+        Get response headers as raw string.
+        """
+        
+        return "\r\n".join([f"{key}: {self.headers[key]}" for key in self.headers.keys()])
+        
+    
+    def _set_default_headers(self):
+        
+        if not self.has_header("Content-Type"):
+            self.set_header("Content-Type", f"{self.content_type}; charset=utf-8")
+        
+        if not self.has_header("Server"):
+            self.set_header("Server", "Python/Tea")
+            
+        self.set_header("Content-Length", len(self.body))
+        
+        self.set_header("Date", strftime("%Y-%m-%d %H:%M:%S"))
+    
+    
     def get_res_as_text(self) -> str:
+        
         """
-        Get raw response text as string.
+        Get response text as raw string.
         """
-        self.set_headers({ "Content-Length": len(self.body), "Date": datetime.now() })
-        return f"HTTP/1.1 {self.status_code} {status_list[str(self.status_code)]}\r\n{self.__get_headers_as_string()}\r\n\r\n{self.body}"
+        
+        self._set_default_headers()
+
+        status_line = f"HTTP/1.1 {self.status_code} {self.status_message}"
+
+        return f"{status_line}\r\n{self._get_headers_as_string()}\r\n\r\n{self.body}"
+
+
+    def has_header(self, key: str) -> bool:
+        
+        """
+        Check if header exists. (Not case sensitive)
+        """
+        
+        return (key.replace("-", " ").title().replace(" ", "-") in self.headers)
+    
+
+    def get_header(self, key: str):
+        
+        """
+        Get value of specific header. Return None if not exists. (Not case sensitive)
+        """
+        
+        return self.headers.get(key.replace("-", " ").title().replace(" ", "-"))
     
     
-    def set_header(self, key: str, value: str) -> None:
+    def set_header(self, key: str, value: str):
+        
         """
         Add new header to response.
         """
+        
         self.headers[key.replace("-", " ").title().replace(" ", "-")] = value
                 
     
-    def set_headers(self, headers: dict[str, str]) -> None:
+    def set_headers(self, headers: dict[str, str]):
+        
         """
         Add multiple headers as dict to response.
         """
+        
         for key in headers:
             self.headers[key.replace("-", " ").title().replace(" ", "-")] = headers[key]
                 
     
-    def send(self, body: str="",
-            headers: Union[dict[str, str], None]=None,
-            status_code: int=200,
-            content_type: str="text/plain") -> None:
+    def send(self, body: str="", headers=None, status_code: int=200, content_type: str="text/plain"):
+        
         """
         Send response inside the callback function.
         """
+        
         self.status_code    = status_code
-        self.status_message = status_list[str(self.status_code)]
-        self.content_type   = content_type if "/" in content_type else mimetype_list.get(content_type, "text/plain")
-        self.set_header("Content-Type", f"{self.content_type}; charset=utf-8")
-        if headers:
-            self.set_headers(headers)
+        self.status_message = status_list[str(self.status_code)].title()
+        self.content_type   = content_type if "/" in content_type else mimetype_list.get(content_type, content_type)
+        
+        # set body
         self.body = body
         
+        # set headers
+        if headers:
+            self.set_headers(headers)
+        self._set_default_headers()
+
     
-    def send_file(self, filename: str,
-                headers: dict[str, str]=None,
-                status_code: int=200) -> None:
+    def send_file(self, filename: str, headers=None, status_code: int=200, content_type: str="text/plain"):
+        
         """
         Send file as response inside the callback function with auto content type.
         """
+        
         self.status_code    = status_code
         self.status_message = status_list[str(self.status_code)]
-        self.content_type   = mimetype_list.get(filename.split(".")[-1], "text/plain")
-        self.set_header("Content-Type", f"{self.content_type}; charset=utf-8")
-        if headers:
-            self.set_headers(headers)
+        self.content_type   = mimetype_list.get(filename.split(".")[-1], content_type)
         
-        absolute_path = Path(filename).resolve()
+        absolute_path = path.abspath(filename)
+        
+        # read file and update body with file content
         try:
             with open(absolute_path, "r", encoding="utf-8") as f:
+                
+                # set body
                 self.body = f.read()
+                
         except Exception as e:
             raise
+        
+        # set headers
+        if headers:
+            self.set_headers(headers)
+        self._set_default_headers()
+        
+        print(self.headers)

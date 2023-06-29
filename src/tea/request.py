@@ -1,63 +1,120 @@
-from .url import URL
-
-from typing import Union
-from json import loads
-from urllib.parse import parse_qsl
-
 class Request:
     
+    
     def __init__(self, req: str):
-        self.__parsed_req = self.parse_req(req)
-        self.method       = self.__parsed_req["method"]
-        self.url          = URL(self.__parsed_req["url"])
-        self.params       = ["/"] + list(filter(lambda p: p != "", self.url.pathname[1:].split("/")))
-        self.query        = { q[0]:"".join(q[1]) for q in parse_qsl(self.url.query) }
-        self.http_version = self.__parsed_req["http_version"]
-        self.headers      = self.__parsed_req["headers"]
-        self.body         = self.__parsed_req["body"]
+        
+        # parse raw http request
+        self._parsed_req = self.parse_req(req)
+        
+        # request line values
+        self.method = self._parsed_req["method"]
+        self.url = self._parsed_req["url"]
+        self.http_version = self._parsed_req["http_version"]
+        
+        # headers
+        self.headers = self._parsed_req["headers"]
+
+        # body
+        self.body = self._parsed_req["body"]
+        
+        # parse URL
+        self._parsed_url = self.parse_url(self.url)
+        self.path = self._parsed_url["path"]
+        self.params = self._parsed_url["params"]
+        self.query_params = self._parsed_url["query_params"]
     
 
     def parse_req(self, req: str) -> dict:
-        parsed_req = { "headers": {}, "body": "" }
         
-        splitted_req = req.split("\r\n\r\n")
-        headers = splitted_req.pop(0)
+        """
+        Parse raw http request into method, url, http_version, headers and body objects.
+        """
         
-        # if body exists
-        if len(splitted_req) > 0:
-            try:
-                # if body is valid json
-                parsed_req["body"] = loads(splitted_req[0])
-            except Exception:
-                parsed_req["body"] = splitted_req[0]
+        # split req with CRLF
+        req_lines = req.split("\r\n")
+        
+        # parse request line eg. GET / HTTP/1.1
+        request_line = req_lines[0]
+        method, request_uri, http_version = request_line.split(" ")
+        # KNOWN BUG: somethimes raises error ValueError: not enough values to unpack (expected 3, got 1)
+        # TODO: fix it!
         
         # parse headers
-        lines      = headers.split("\r\n")
-        first_line = lines.pop(0).strip().split(" ") # eg. [GET, /, HTTP/1.1]
+        # parse until CRLF between headers and body
+        headers = {}
+        i = 1
+        while req_lines[i]:
+            
+            header = req_lines[i]
+            key, value = header.split(":", 1)
+            headers[key.strip()] = value.strip()
+            
+            i += 1
         
-        parsed_req["method"]       = first_line[0] if len(first_line) > 0 else ""
-        parsed_req["url"]          = first_line[1] if len(first_line) > 1 else ""
-        parsed_req["http_version"] = first_line[2] if len(first_line) > 2 else ""
+        # parse body
+        # i+1 because skipping the empty line
+        body = req_lines[i+1]
+        # TODO: parse body and return as dict if it is valid json (or is it supposed to be like this??)
         
-        for line in lines:
-            if ":" in line: # eg. host: localhost:5500
-                sem_pos = line.find(":") # get first semicolon position eg. 4
-                key = line[:sem_pos].lower().strip() # eg. host
-                value = line[sem_pos+1:].strip() # eg. localhost:5500
-                if not key.isspace() and not value.isspace():
-                    parsed_req["headers"][key.replace("-", " ").title().replace(" ", "-")] = value
-        return parsed_req
+        return {
+            "method": method,
+            "url": request_uri,
+            "http_version": http_version,
+            "headers": headers,
+            "body": body
+        }
+        
     
-    
-    def get_header(self, key: str) -> Union[str, None]:
+    def parse_url(self, url: str) -> dict:
+        
         """
-        Get value of specific header. Return None if not exists. (Not case sensitive)
+        Parse request URL into path, params and query_params objects.
         """
-        return self.headers.get(key.replace("-", " ").title().replace(" ", "-"), None)
+        
+        # if URL contains query params
+        if "?" in url:
+            path, raw_query = url.split("?", 1)
+            
+            # parse query params
+            query_params = {}
+            for param in raw_query.split("&"):
+                if param:
+                    key, value = param.split("=")
+                    query_params[key] = value
+        
+        else:
+            path = url
+            query_params = {}
+            
+        # parse path into params
+        params = ["/"]
+        
+        if path != "/":
+            path = path if path[0] == "/" else "/"+path
+            path = path if path[-1] != "/" else path[:-1]
+            params = path.split("/")
+            params[0] = "/"
+        
+        return {
+            "path": path,
+            "params": params,
+            "query_params": query_params
+        }
     
-    
+
     def has_header(self, key: str) -> bool:
+        
         """
         Check if header exists. (Not case sensitive)
         """
+        
         return (key.replace("-", " ").title().replace(" ", "-") in self.headers)
+    
+    
+    def get_header(self, key: str):
+        
+        """
+        Get value of specific header. Return None if not exists. (Not case sensitive)
+        """
+        
+        return self.headers.get(key.replace("-", " ").title().replace(" ", "-"))
